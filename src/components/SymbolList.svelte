@@ -1,0 +1,99 @@
+<script>
+  import { CurrencyStore } from "../stores";
+  import { fade, scale } from "svelte/transition";
+  import Card from "./Card.svelte";
+  import Button from "./Button.svelte";
+
+  const handleInput = (symbol) => {
+    console.log(symbol);
+  };
+  const handleChange = (symbol) => {
+    console.log(symbol);
+  };
+</script>
+
+<Card>
+  <div
+    style="display: grid; 
+        grid-template-columns: repeat(5, auto);
+        max-width: 480px;
+        "
+  >
+    <div class="table-cell heading-title">Row</div>
+    <div class="table-cell heading-title">Manual</div>
+    <div class="table-cell heading-title">Currency</div>
+    <div class="table-cell heading-title">Rate</div>
+    <div class="table-cell heading-title">Adjust</div>
+    {#each $CurrencyStore as symbol (symbol.id)}
+      <div class="table-cell">
+        <p>
+          {symbol.id}
+        </p>
+      </div>
+
+      <div class="table-cell">
+        <input type="checkbox" bind:checked={symbol.has_manual_rate} />
+      </div>
+      <div class="table-cell">
+        <p>
+          {symbol.symbol.name}
+        </p>
+      </div>
+      <div class="table-cell">
+        {#if symbol.has_manual_rate}
+          <input
+            on:chage={() => handleChange(symbol)}
+            type="number"
+            min="0"
+            step="0.001"
+            bind:value={symbol.manual_rate}
+          />
+        {:else}
+          <p>
+            {symbol.symbol.rate}
+          </p>
+        {/if}
+      </div>
+      <div class="table-cell">
+        <input
+          on:change={() => handleChange(symbol)}
+          type="number"
+          step="50"
+          bind:value={symbol.addition}
+        />
+      </div>
+    {/each}
+  </div>
+</Card>
+
+<style>
+    * {
+        font-size: 16px;
+    }
+  .table-cell {
+    width: 56px;
+    margin: 8px 0px;
+  }
+
+  .heading-title {
+    text-align: start;
+    font-size: smaller;
+  }
+
+  input[type="number"] {
+    width: 72px;
+    border-width: 1px;
+    border-radius: 4px;
+    text-align: center;
+    padding: 2px 4px;
+    /* flex-grow: 2; */
+    /* border: none; */
+    font-size: 16px;
+    text-align: start;
+  }
+
+  input:focus {
+    outline: none;
+  }
+
+</style>
