@@ -1,10 +1,18 @@
 <script>
-  import {v4 as uuidv4} from 'uuid'
+  import { v4 as uuidv4 } from "uuid";
   import { DollarStore, DollarPrice } from "../stores.js";
   import Button from "./Button.svelte";
   import Card from "./Card.svelte";
 
+  let timePickerOptions = {
+    bgColor: "#9b2c2c",
+    hasButtons: true,
+  };
+
   let manual_rate = "";
+
+    // TODO: initialize this to have a default value
+  let user_selected_timedate;
 
   const handleChange = (symbol) => {
     console.log(symbol);
@@ -14,26 +22,36 @@
     console.log(new_price);
 
     DollarStore.update((currentState) => {
-        let new_historic_price = new DollarPrice(+currentState.current_price.price,
-                currentState.current_price.timestamp)
-            /* { */
-            /* id: uuidv4(), */
-            /* price: +currentState.current_price, */
-            /* time: currentState.current_time */
-        /* } */
-        let new_historic_prices = [new_historic_price,
-            ...currentState.historic_prices]
+      let new_historic_price = new DollarPrice(
+        +currentState.current_price.price,
+        currentState.current_price.timestamp
+      );
+      let new_historic_prices = [
+        new_historic_price,
+        ...currentState.historic_prices,
+      ];
 
-        let new_dollar_price = new DollarPrice(new_price, Math.floor(Date.now()
-            / 1000))
+      console.log(user_selected_timedate);
 
-        let new_state = {
-            current_price: new_dollar_price,
-            historic_prices: new_historic_prices
-        }
+      let new_dollar_price = new DollarPrice(
+        new_price,
+        /* Math.floor(new Date() / 1000) */
+          user_selected_timedate instanceof String ?
+          Math.floor(Date.parse(user_selected_timedate) / 1000) :
+          Math.floor(new Date() / 1000)
+      );
 
-        return new_state
-    })
+      let new_state = {
+        current_price: new_dollar_price,
+        historic_prices: new_historic_prices,
+      };
+
+      return new_state;
+    });
+  };
+
+  const newDollarPriceTimeChanged = (e) => {
+    console.log(e.detail);
   };
 
   // TODO: Do we need to use locale?
@@ -52,13 +70,15 @@
 <Card>
   <form on:submit|preventDefault={handleSubmit(manual_rate)}>
     <div style="display: flex;">
-      <p>Enter $</p>
-      <input type="number" min="0" step="50" bind:value={manual_rate} />
+      <p>Enter</p>
+      <input type="number" min="0" bind:value={manual_rate} />
+      <p>$</p>
+      <input type="datetime-local" bind:value={user_selected_timedate} />
       <Button type="submit">Add</Button>
     </div>
   </form>
 
-  <hr class="solid">
+  <hr class="solid" />
 
   <div style="display: flex; justify-content: space-between;">
     <p>
@@ -71,7 +91,7 @@
     </p>
   </div>
 
-  <hr class="solid">
+  <hr class="solid" />
 
   <p>Logs:</p>
   {#each $DollarStore.historic_prices as dollar (dollar.uid)}
@@ -110,7 +130,7 @@
   }
 
   hr.solid {
-        border-top: 1px solid #bbb;
-        margin: 8px 0px;
-    }
+    border-top: 1px solid #bbb;
+    margin: 8px 0px;
+  }
 </style>

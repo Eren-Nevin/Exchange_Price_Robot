@@ -109,7 +109,7 @@
   .rating {
     display: flex;
     align-items: center;
-    justify-content: space-around;
+    justify-content: left;
   }
 
   button {

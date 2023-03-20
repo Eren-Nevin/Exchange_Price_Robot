@@ -42,6 +42,7 @@ class CurrencyRate:
 
 @dataclass()
 class CurrencyModel:
+    selected_currencies: List[str]
     currency_rates: List[CurrencyRate]
 
 
@@ -73,8 +74,12 @@ class AppState:
             historic_prices=[DollarPrice(44135, 1678313387)]
         )
 
-        currency_model = CurrencyModel([CurrencyRate('TRY', 19.01, False, 0, 500), ]
-                                       )
+        currency_model = CurrencyModel(
+            selected_currencies=['EUR'],
+            currency_rates=[CurrencyRate('TRY', 19.01, False, 0, 500),
+                            CurrencyRate('EUR', 1.05, False, 0, 500)
+                            ]
+        )
 
         bot_model = BotModel(disabled=False, onTime=True, onChange=False,
                              interval=BotInterval(unit='Hour', value=1))

@@ -53,10 +53,13 @@ export class BotInterval {
   }
 }
 
-export const CurrencyStore = writable([
-  new CurrencyRate("EUR", "1.05", false, 1, 500),
-  new CurrencyRate("TRY", "19.01", true, 19.5, -200),
-]);
+export const CurrencyStore = writable({
+  selected_currencies: ["EUR", "TRY"],
+  currency_rates: [
+    new CurrencyRate("EUR", "1.05", false, 1, 500),
+    new CurrencyRate("TRY", "19.01", true, 19.5, -200),
+  ],
+});
 
 export const DollarStore = writable({
   current_price: new DollarPrice(48285, 1679161352),
@@ -128,7 +131,9 @@ function botStoreDataAdapter(bot_model) {
 }
 
 function currencyStoreDataAdapter(currency_model) {
-  let new_currency_state = [];
+    let received_currency_rates = []
+
+
 
   for (let raw_model of currency_model.currency_rates) {
     let new_currency = new CurrencyRate(
@@ -138,8 +143,12 @@ function currencyStoreDataAdapter(currency_model) {
       raw_model.manual_rate,
       raw_model.adjustment
     );
-    new_currency_state = [new_currency, ...new_currency_state];
+    received_currency_rates = [new_currency, ...received_currency_rates]
   }
+    let new_currency_state = {
+      selected_currencies: currency_model.selected_currencies,
+      currency_rates: received_currency_rates,
+    };
   return new_currency_state;
 }
 
@@ -172,8 +181,10 @@ export function startUpdatingAppState() {
   let dollarSub = DollarStore.subscribe((dollar_model) => {
     app_state.dollar_model = dollar_model;
   });
-  let currencySub = CurrencyStore.subscribe((currency_rate_list) => {
-    app_state.currency_model = { currency_rates: [...currency_rate_list] };
+  let currencySub = CurrencyStore.subscribe((currency_model) => {
+    app_state.currency_model = { 
+        selected_currencies: currency_model.selected_currencies,
+        currency_rates: [...currency_model.currency_rates] };
   });
   let botSub = BotStore.subscribe((bot_model) => {
     app_state.bot_model = bot_model;
