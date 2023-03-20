@@ -7,8 +7,8 @@
   const handleInput = (symbol) => {
     console.log(symbol);
   };
-  const handleChange = (symbol) => {
-    console.log(symbol);
+  const handleChange = (currencyRate) => {
+    console.log(currencyRate);
   };
 </script>
 
@@ -24,42 +24,42 @@
     <div class="table-cell heading-title">Currency</div>
     <div class="table-cell heading-title">Rate</div>
     <div class="table-cell heading-title">Adjust</div>
-    {#each $CurrencyStore as symbol (symbol.id)}
+    {#each $CurrencyStore as currencyRate, i (currencyRate.uid)}
       <div class="table-cell">
         <p>
-          {symbol.id}
+          {i+1}
         </p>
       </div>
 
       <div class="table-cell">
-        <input type="checkbox" bind:checked={symbol.has_manual_rate} />
+        <input type="checkbox" bind:checked={currencyRate.has_manual_rate} />
       </div>
       <div class="table-cell">
         <p>
-          {symbol.symbol.name}
+          {currencyRate.name}
         </p>
       </div>
       <div class="table-cell">
-        {#if symbol.has_manual_rate}
+        {#if currencyRate.has_manual_rate}
           <input
-            on:chage={() => handleChange(symbol)}
+            on:chage={() => handleChange(currencyRate)}
             type="number"
             min="0"
             step="0.001"
-            bind:value={symbol.manual_rate}
+            bind:value={currencyRate.manual_rate}
           />
         {:else}
           <p>
-            {symbol.symbol.rate}
+            {currencyRate.rate}
           </p>
         {/if}
       </div>
       <div class="table-cell">
         <input
-          on:change={() => handleChange(symbol)}
+          on:change={() => handleChange(currencyRate)}
           type="number"
           step="50"
-          bind:value={symbol.addition}
+          bind:value={currencyRate.adjustment}
         />
       </div>
     {/each}

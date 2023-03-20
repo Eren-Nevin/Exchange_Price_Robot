@@ -1,6 +1,6 @@
 <script>
   import {v4 as uuidv4} from 'uuid'
-  import { DollarStore } from "../stores.js";
+  import { DollarStore, DollarPrice } from "../stores.js";
   import Button from "./Button.svelte";
   import Card from "./Card.svelte";
 
@@ -14,17 +14,22 @@
     console.log(new_price);
 
     DollarStore.update((currentState) => {
-        let new_log = {
-            id: uuidv4(),
-            price: +currentState.current_price,
-            time: currentState.current_time
-        }
-        let new_logs = [new_log, ...currentState.logs]
+        let new_historic_price = new DollarPrice(+currentState.current_price.price,
+                currentState.current_price.timestamp)
+            /* { */
+            /* id: uuidv4(), */
+            /* price: +currentState.current_price, */
+            /* time: currentState.current_time */
+        /* } */
+        let new_historic_prices = [new_historic_price,
+            ...currentState.historic_prices]
+
+        let new_dollar_price = new DollarPrice(new_price, Math.floor(Date.now()
+            / 1000))
 
         let new_state = {
-            current_price: new_price,
-            current_time: Math.floor(Date.now() / 1000),
-            logs: new_logs
+            current_price: new_dollar_price,
+            historic_prices: new_historic_prices
         }
 
         return new_state
@@ -58,23 +63,23 @@
   <div style="display: flex; justify-content: space-between;">
     <p>
       Current Price:
-      {$DollarStore.current_price}
+      {$DollarStore.current_price.price}
     </p>
     <p>
-      {convertTimestampToDate($DollarStore.current_time)} -
-      {convertTimestampToTime($DollarStore.current_time)}
+      {convertTimestampToDate($DollarStore.current_price.timestamp)} -
+      {convertTimestampToTime($DollarStore.current_price.timestamp)}
     </p>
   </div>
 
   <hr class="solid">
 
   <p>Logs:</p>
-  {#each $DollarStore.logs as dollar (dollar.id)}
+  {#each $DollarStore.historic_prices as dollar (dollar.uid)}
     <div style="display: flex; justify-content: space-between; ">
       <p>{dollar.price}</p>
       <p>
-        {convertTimestampToDate(dollar.time)} -
-        {convertTimestampToTime(dollar.time)}
+        {convertTimestampToDate(dollar.timestamp)} -
+        {convertTimestampToTime(dollar.timestamp)}
       </p>
     </div>
   {/each}

@@ -4,6 +4,13 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
+autopep8 = "*"
+bs4 = "*"
+requests = "*"
+selenium-wire = "*"
+selenium = "*"
+sanic = {extras = ["ext"], version = "*"}
+dataclass-wizard = "*"
 
 [dev-packages]
 

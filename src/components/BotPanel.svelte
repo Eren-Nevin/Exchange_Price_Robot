@@ -1,6 +1,6 @@
 <script>
   import Card from "./Card.svelte";
-  import { BotStore } from "../stores";
+  import { BotStore, getStateFromServer, reloadStateFromServer, sendStateToServer } from "../stores";
   import Button from "./Button.svelte";
 
   const onTriggerChange = (e) => {
@@ -24,8 +24,10 @@
     const onBotDisableButtonClicked = () => {
         $BotStore.disabled = !$BotStore.disabled;
     }
-    const onBotSendNowButtonClicked = () => {
+    const onBotSendNowButtonClicked = async () => {
         console.log("Sending Bot Now!")
+        /* await reloadStateFromServer() */
+
     }
 </script>
 
@@ -67,12 +69,12 @@
         type="number"
         min="0"
         step="1"
-        bind:value={$BotStore.intervalSettings.intervalValue}
+        bind:value={$BotStore.interval.value}
       />
       <select
-        bind:value={$BotStore.intervalSettings.intervalDuration}
-        name="language"
-        id="language"
+        bind:value={$BotStore.interval.unit}
+        name="interval-unit"
+        id="interval-unit"
       >
         <option value="Week">Minutes</option>
         <option value="Hour">Hours</option>
