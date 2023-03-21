@@ -2022,9 +2022,7 @@ var app = (function () {
     }
 
     function currencyStoreDataAdapter(currency_model) {
-        let received_currency_rates = [];
-
-
+      let received_currency_rates = [];
 
       for (let raw_model of currency_model.currency_rates) {
         let new_currency = new CurrencyRate(
@@ -2036,16 +2034,20 @@ var app = (function () {
         );
         received_currency_rates = [new_currency, ...received_currency_rates];
       }
-        let new_currency_state = {
-          selected_currencies: currency_model.selected_currencies,
-          currency_rates: received_currency_rates,
-        };
+
+      received_currency_rates = [
+        ...received_currency_rates.sort((a, b) => a.name.localeCompare(b.name)),
+      ];
+      console.log(received_currency_rates);
+      let new_currency_state = {
+        selected_currencies: currency_model.selected_currencies,
+        currency_rates: received_currency_rates,
+      };
       return new_currency_state;
     }
 
     async function reloadStateFromServer() {
       let raw_state = await getStateFromServer();
-      console.log(raw_state);
 
       let new_dollar_state = dollarStoreDataAdapter(raw_state.dollar_model);
       let new_bot_state = botStoreDataAdapter(raw_state.bot_model);
@@ -2073,9 +2075,10 @@ var app = (function () {
         app_state.dollar_model = dollar_model;
       });
       CurrencyStore.subscribe((currency_model) => {
-        app_state.currency_model = { 
-            selected_currencies: currency_model.selected_currencies,
-            currency_rates: [...currency_model.currency_rates] };
+        app_state.currency_model = {
+          selected_currencies: currency_model.selected_currencies,
+          currency_rates: [...currency_model.currency_rates],
+        };
       });
       BotStore.subscribe((bot_model) => {
         app_state.bot_model = bot_model;
@@ -3367,23 +3370,23 @@ var app = (function () {
 
     function get_each_context(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[13] = list[i];
-    	child_ctx[14] = list;
-    	child_ctx[15] = i;
+    	child_ctx[14] = list[i];
+    	child_ctx[15] = list;
+    	child_ctx[16] = i;
     	return child_ctx;
     }
 
     function get_each_context_1(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[13] = list[i];
-    	child_ctx[15] = i;
+    	child_ctx[14] = list[i];
+    	child_ctx[16] = i;
     	return child_ctx;
     }
 
-    // (54:8) {#if !$CurrencyStore.selected_currencies.includes(currencyRate.name)}
+    // (79:8) {#if !$CurrencyStore.selected_currencies.includes(currencyRate.name)}
     function create_if_block_2(ctx) {
     	let option;
-    	let t_value = /*currencyRate*/ ctx[13].name + "";
+    	let t_value = /*currencyRate*/ ctx[14].name + "";
     	let t;
     	let option_value_value;
 
@@ -3391,19 +3394,19 @@ var app = (function () {
     		c: function create() {
     			option = element("option");
     			t = text(t_value);
-    			option.__value = option_value_value = /*currencyRate*/ ctx[13].name;
+    			option.__value = option_value_value = /*currencyRate*/ ctx[14].name;
     			option.value = option.__value;
     			attr_dev(option, "class", "svelte-1kvb8vw");
-    			add_location(option, file$1, 54, 10, 1401);
+    			add_location(option, file$1, 79, 10, 2206);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, option, anchor);
     			append_dev(option, t);
     		},
     		p: function update(ctx, dirty) {
-    			if (dirty & /*$CurrencyStore*/ 2 && t_value !== (t_value = /*currencyRate*/ ctx[13].name + "")) set_data_dev(t, t_value);
+    			if (dirty & /*$CurrencyStore*/ 4 && t_value !== (t_value = /*currencyRate*/ ctx[14].name + "")) set_data_dev(t, t_value);
 
-    			if (dirty & /*$CurrencyStore*/ 2 && option_value_value !== (option_value_value = /*currencyRate*/ ctx[13].name)) {
+    			if (dirty & /*$CurrencyStore*/ 4 && option_value_value !== (option_value_value = /*currencyRate*/ ctx[14].name)) {
     				prop_dev(option, "__value", option_value_value);
     				option.value = option.__value;
     			}
@@ -3417,17 +3420,17 @@ var app = (function () {
     		block,
     		id: create_if_block_2.name,
     		type: "if",
-    		source: "(54:8) {#if !$CurrencyStore.selected_currencies.includes(currencyRate.name)}",
+    		source: "(79:8) {#if !$CurrencyStore.selected_currencies.includes(currencyRate.name)}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (53:6) {#each $CurrencyStore.currency_rates as currencyRate, i (currencyRate.uid)}
+    // (78:6) {#each $CurrencyStore.currency_rates as currencyRate, i (currencyRate.uid)}
     function create_each_block_1(key_1, ctx) {
     	let first;
-    	let show_if = !/*$CurrencyStore*/ ctx[1].selected_currencies.includes(/*currencyRate*/ ctx[13].name);
+    	let show_if = !/*$CurrencyStore*/ ctx[2].selected_currencies.includes(/*currencyRate*/ ctx[14].name);
     	let if_block_anchor;
     	let if_block = show_if && create_if_block_2(ctx);
 
@@ -3447,7 +3450,7 @@ var app = (function () {
     		},
     		p: function update(new_ctx, dirty) {
     			ctx = new_ctx;
-    			if (dirty & /*$CurrencyStore*/ 2) show_if = !/*$CurrencyStore*/ ctx[1].selected_currencies.includes(/*currencyRate*/ ctx[13].name);
+    			if (dirty & /*$CurrencyStore*/ 4) show_if = !/*$CurrencyStore*/ ctx[2].selected_currencies.includes(/*currencyRate*/ ctx[14].name);
 
     			if (show_if) {
     				if (if_block) {
@@ -3473,18 +3476,18 @@ var app = (function () {
     		block,
     		id: create_each_block_1.name,
     		type: "each",
-    		source: "(53:6) {#each $CurrencyStore.currency_rates as currencyRate, i (currencyRate.uid)}",
+    		source: "(78:6) {#each $CurrencyStore.currency_rates as currencyRate, i (currencyRate.uid)}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (78:6) {#if $CurrencyStore.selected_currencies.includes(currencyRate.name)}
+    // (106:6) {#if $CurrencyStore.selected_currencies.includes(currencyRate.name)}
     function create_if_block(ctx) {
     	let div0;
     	let p0;
-    	let t0_value = /*i*/ ctx[15] + 1 + "";
+    	let t0_value = /*selectedCurrencies*/ ctx[0].findIndex(func) + 1 + "";
     	let t0;
     	let t1;
     	let div1;
@@ -3492,7 +3495,7 @@ var app = (function () {
     	let t2;
     	let div2;
     	let p1;
-    	let t3_value = /*currencyRate*/ ctx[13].name + "";
+    	let t3_value = /*currencyRate*/ ctx[14].name + "";
     	let t3;
     	let t4;
     	let div3;
@@ -3503,24 +3506,24 @@ var app = (function () {
     	let mounted;
     	let dispose;
 
+    	function func(...args) {
+    		return /*func*/ ctx[7](/*currencyRate*/ ctx[14], ...args);
+    	}
+
     	function input0_change_handler() {
-    		/*input0_change_handler*/ ctx[7].call(input0, /*each_value*/ ctx[14], /*i*/ ctx[15]);
+    		/*input0_change_handler*/ ctx[8].call(input0, /*each_value*/ ctx[15], /*i*/ ctx[16]);
     	}
 
     	function select_block_type(ctx, dirty) {
-    		if (/*currencyRate*/ ctx[13].has_manual_rate) return create_if_block_1;
+    		if (/*currencyRate*/ ctx[14].has_manual_rate) return create_if_block_1;
     		return create_else_block;
     	}
 
     	let current_block_type = select_block_type(ctx);
     	let if_block = current_block_type(ctx);
 
-    	function change_handler() {
-    		return /*change_handler*/ ctx[10](/*currencyRate*/ ctx[13]);
-    	}
-
     	function input1_input_handler() {
-    		/*input1_input_handler*/ ctx[11].call(input1, /*each_value*/ ctx[14], /*i*/ ctx[15]);
+    		/*input1_input_handler*/ ctx[10].call(input1, /*each_value*/ ctx[15], /*i*/ ctx[16]);
     	}
 
     	const block = {
@@ -3543,26 +3546,26 @@ var app = (function () {
     			input1 = element("input");
     			t6 = space();
     			attr_dev(p0, "class", "svelte-1kvb8vw");
-    			add_location(p0, file$1, 79, 10, 2278);
+    			add_location(p0, file$1, 107, 10, 3140);
     			attr_dev(div0, "class", "table-cell svelte-1kvb8vw");
-    			add_location(div0, file$1, 78, 8, 2243);
+    			add_location(div0, file$1, 106, 8, 3105);
     			attr_dev(input0, "type", "checkbox");
     			attr_dev(input0, "class", "svelte-1kvb8vw");
-    			add_location(input0, file$1, 85, 10, 2376);
+    			add_location(input0, file$1, 114, 10, 3321);
     			attr_dev(div1, "class", "table-cell svelte-1kvb8vw");
-    			add_location(div1, file$1, 84, 8, 2341);
+    			add_location(div1, file$1, 113, 8, 3286);
     			attr_dev(p1, "class", "svelte-1kvb8vw");
-    			add_location(p1, file$1, 88, 10, 2504);
+    			add_location(p1, file$1, 117, 10, 3449);
     			attr_dev(div2, "class", "table-cell svelte-1kvb8vw");
-    			add_location(div2, file$1, 87, 8, 2469);
+    			add_location(div2, file$1, 116, 8, 3414);
     			attr_dev(div3, "class", "table-cell svelte-1kvb8vw");
-    			add_location(div3, file$1, 92, 8, 2578);
+    			add_location(div3, file$1, 121, 8, 3523);
     			attr_dev(input1, "type", "number");
     			attr_dev(input1, "step", "50");
     			attr_dev(input1, "class", "svelte-1kvb8vw");
-    			add_location(input1, file$1, 108, 10, 3028);
+    			add_location(input1, file$1, 137, 10, 3950);
     			attr_dev(div4, "class", "table-cell svelte-1kvb8vw");
-    			add_location(div4, file$1, 107, 8, 2993);
+    			add_location(div4, file$1, 136, 8, 3915);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div0, anchor);
@@ -3571,7 +3574,7 @@ var app = (function () {
     			insert_dev(target, t1, anchor);
     			insert_dev(target, div1, anchor);
     			append_dev(div1, input0);
-    			input0.checked = /*currencyRate*/ ctx[13].has_manual_rate;
+    			input0.checked = /*currencyRate*/ ctx[14].has_manual_rate;
     			insert_dev(target, t2, anchor);
     			insert_dev(target, div2, anchor);
     			append_dev(div2, p1);
@@ -3582,7 +3585,7 @@ var app = (function () {
     			insert_dev(target, t5, anchor);
     			insert_dev(target, div4, anchor);
     			append_dev(div4, input1);
-    			set_input_value(input1, /*currencyRate*/ ctx[13].adjustment);
+    			set_input_value(input1, /*currencyRate*/ ctx[14].adjustment);
     			append_dev(div4, t6);
 
     			if (!mounted) {
@@ -3597,13 +3600,13 @@ var app = (function () {
     		},
     		p: function update(new_ctx, dirty) {
     			ctx = new_ctx;
-    			if (dirty & /*$CurrencyStore*/ 2 && t0_value !== (t0_value = /*i*/ ctx[15] + 1 + "")) set_data_dev(t0, t0_value);
+    			if (dirty & /*selectedCurrencies, $CurrencyStore*/ 5 && t0_value !== (t0_value = /*selectedCurrencies*/ ctx[0].findIndex(func) + 1 + "")) set_data_dev(t0, t0_value);
 
-    			if (dirty & /*$CurrencyStore*/ 2) {
-    				input0.checked = /*currencyRate*/ ctx[13].has_manual_rate;
+    			if (dirty & /*$CurrencyStore*/ 4) {
+    				input0.checked = /*currencyRate*/ ctx[14].has_manual_rate;
     			}
 
-    			if (dirty & /*$CurrencyStore*/ 2 && t3_value !== (t3_value = /*currencyRate*/ ctx[13].name + "")) set_data_dev(t3, t3_value);
+    			if (dirty & /*$CurrencyStore*/ 4 && t3_value !== (t3_value = /*currencyRate*/ ctx[14].name + "")) set_data_dev(t3, t3_value);
 
     			if (current_block_type === (current_block_type = select_block_type(ctx)) && if_block) {
     				if_block.p(ctx, dirty);
@@ -3617,8 +3620,8 @@ var app = (function () {
     				}
     			}
 
-    			if (dirty & /*$CurrencyStore*/ 2 && to_number(input1.value) !== /*currencyRate*/ ctx[13].adjustment) {
-    				set_input_value(input1, /*currencyRate*/ ctx[13].adjustment);
+    			if (dirty & /*$CurrencyStore*/ 4 && to_number(input1.value) !== /*currencyRate*/ ctx[14].adjustment) {
+    				set_input_value(input1, /*currencyRate*/ ctx[14].adjustment);
     			}
     		},
     		d: function destroy(detaching) {
@@ -3641,17 +3644,17 @@ var app = (function () {
     		block,
     		id: create_if_block.name,
     		type: "if",
-    		source: "(78:6) {#if $CurrencyStore.selected_currencies.includes(currencyRate.name)}",
+    		source: "(106:6) {#if $CurrencyStore.selected_currencies.includes(currencyRate.name)}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (102:10) {:else}
+    // (131:10) {:else}
     function create_else_block(ctx) {
     	let p;
-    	let t_value = /*currencyRate*/ ctx[13].rate + "";
+    	let t_value = /*currencyRate*/ ctx[14].rate + "";
     	let t;
 
     	const block = {
@@ -3659,14 +3662,14 @@ var app = (function () {
     			p = element("p");
     			t = text(t_value);
     			attr_dev(p, "class", "svelte-1kvb8vw");
-    			add_location(p, file$1, 102, 12, 2899);
+    			add_location(p, file$1, 131, 12, 3821);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, p, anchor);
     			append_dev(p, t);
     		},
     		p: function update(ctx, dirty) {
-    			if (dirty & /*$CurrencyStore*/ 2 && t_value !== (t_value = /*currencyRate*/ ctx[13].rate + "")) set_data_dev(t, t_value);
+    			if (dirty & /*$CurrencyStore*/ 4 && t_value !== (t_value = /*currencyRate*/ ctx[14].rate + "")) set_data_dev(t, t_value);
     		},
     		d: function destroy(detaching) {
     			if (detaching) detach_dev(p);
@@ -3677,25 +3680,21 @@ var app = (function () {
     		block,
     		id: create_else_block.name,
     		type: "else",
-    		source: "(102:10) {:else}",
+    		source: "(131:10) {:else}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (94:10) {#if currencyRate.has_manual_rate}
+    // (123:10) {#if currencyRate.has_manual_rate}
     function create_if_block_1(ctx) {
     	let input;
     	let mounted;
     	let dispose;
 
-    	function chage_handler() {
-    		return /*chage_handler*/ ctx[8](/*currencyRate*/ ctx[13]);
-    	}
-
     	function input_input_handler() {
-    		/*input_input_handler*/ ctx[9].call(input, /*each_value*/ ctx[14], /*i*/ ctx[15]);
+    		/*input_input_handler*/ ctx[9].call(input, /*each_value*/ ctx[15], /*i*/ ctx[16]);
     	}
 
     	const block = {
@@ -3703,13 +3702,13 @@ var app = (function () {
     			input = element("input");
     			attr_dev(input, "type", "number");
     			attr_dev(input, "min", "0");
-    			attr_dev(input, "step", "0.001");
+    			attr_dev(input, "step", "0.0001");
     			attr_dev(input, "class", "svelte-1kvb8vw");
-    			add_location(input, file$1, 94, 12, 2660);
+    			add_location(input, file$1, 123, 12, 3605);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, input, anchor);
-    			set_input_value(input, /*currencyRate*/ ctx[13].manual_rate);
+    			set_input_value(input, /*currencyRate*/ ctx[14].manual_rate);
 
     			if (!mounted) {
     				dispose = [
@@ -3723,8 +3722,8 @@ var app = (function () {
     		p: function update(new_ctx, dirty) {
     			ctx = new_ctx;
 
-    			if (dirty & /*$CurrencyStore*/ 2 && to_number(input.value) !== /*currencyRate*/ ctx[13].manual_rate) {
-    				set_input_value(input, /*currencyRate*/ ctx[13].manual_rate);
+    			if (dirty & /*$CurrencyStore*/ 4 && to_number(input.value) !== /*currencyRate*/ ctx[14].manual_rate) {
+    				set_input_value(input, /*currencyRate*/ ctx[14].manual_rate);
     			}
     		},
     		d: function destroy(detaching) {
@@ -3738,17 +3737,17 @@ var app = (function () {
     		block,
     		id: create_if_block_1.name,
     		type: "if",
-    		source: "(94:10) {#if currencyRate.has_manual_rate}",
+    		source: "(123:10) {#if currencyRate.has_manual_rate}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (77:4) {#each $CurrencyStore.currency_rates as currencyRate, i (currencyRate.uid)}
+    // (105:4) {#each $CurrencyStore.currency_rates as currencyRate, i (currencyRate.uid)}
     function create_each_block(key_1, ctx) {
     	let first;
-    	let show_if = /*$CurrencyStore*/ ctx[1].selected_currencies.includes(/*currencyRate*/ ctx[13].name);
+    	let show_if = /*$CurrencyStore*/ ctx[2].selected_currencies.includes(/*currencyRate*/ ctx[14].name);
     	let if_block_anchor;
     	let if_block = show_if && create_if_block(ctx);
 
@@ -3768,7 +3767,7 @@ var app = (function () {
     		},
     		p: function update(new_ctx, dirty) {
     			ctx = new_ctx;
-    			if (dirty & /*$CurrencyStore*/ 2) show_if = /*$CurrencyStore*/ ctx[1].selected_currencies.includes(/*currencyRate*/ ctx[13].name);
+    			if (dirty & /*$CurrencyStore*/ 4) show_if = /*$CurrencyStore*/ ctx[2].selected_currencies.includes(/*currencyRate*/ ctx[14].name);
 
     			if (show_if) {
     				if (if_block) {
@@ -3794,43 +3793,47 @@ var app = (function () {
     		block,
     		id: create_each_block.name,
     		type: "each",
-    		source: "(77:4) {#each $CurrencyStore.currency_rates as currencyRate, i (currencyRate.uid)}",
+    		source: "(105:4) {#each $CurrencyStore.currency_rates as currencyRate, i (currencyRate.uid)}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (43:0) <Card>
+    // (67:0) <Card>
     function create_default_slot(ctx) {
     	let div0;
+    	let p;
+    	let t1;
     	let select;
     	let each_blocks_1 = [];
     	let each0_lookup = new Map();
     	let select_disabled_value;
-    	let t0;
-    	let button0;
     	let t2;
-    	let button1;
+    	let button0;
+    	let t3;
+    	let button0_disabled_value;
     	let t4;
+    	let button1;
+    	let t6;
     	let div6;
     	let div1;
-    	let t6;
-    	let div2;
     	let t8;
-    	let div3;
+    	let div2;
     	let t10;
-    	let div4;
+    	let div3;
     	let t12;
-    	let div5;
+    	let div4;
     	let t14;
+    	let div5;
+    	let t16;
     	let each_blocks = [];
     	let each1_lookup = new Map();
     	let mounted;
     	let dispose;
-    	let each_value_1 = /*$CurrencyStore*/ ctx[1].currency_rates;
+    	let each_value_1 = /*$CurrencyStore*/ ctx[2].currency_rates;
     	validate_each_argument(each_value_1);
-    	const get_key = ctx => /*currencyRate*/ ctx[13].uid;
+    	const get_key = ctx => /*currencyRate*/ ctx[14].uid;
     	validate_each_keys(ctx, each_value_1, get_each_context_1, get_key);
 
     	for (let i = 0; i < each_value_1.length; i += 1) {
@@ -3839,9 +3842,9 @@ var app = (function () {
     		each0_lookup.set(key, each_blocks_1[i] = create_each_block_1(key, child_ctx));
     	}
 
-    	let each_value = /*$CurrencyStore*/ ctx[1].currency_rates;
+    	let each_value = /*$CurrencyStore*/ ctx[2].currency_rates;
     	validate_each_argument(each_value);
-    	const get_key_1 = ctx => /*currencyRate*/ ctx[13].uid;
+    	const get_key_1 = ctx => /*currencyRate*/ ctx[14].uid;
     	validate_each_keys(ctx, each_value, get_each_context, get_key_1);
 
     	for (let i = 0; i < each_value.length; i += 1) {
@@ -3853,94 +3856,105 @@ var app = (function () {
     	const block = {
     		c: function create() {
     			div0 = element("div");
+    			p = element("p");
+    			p.textContent = "Currency";
+    			t1 = space();
     			select = element("select");
 
     			for (let i = 0; i < each_blocks_1.length; i += 1) {
     				each_blocks_1[i].c();
     			}
 
-    			t0 = space();
-    			button0 = element("button");
-    			button0.textContent = "Add";
     			t2 = space();
+    			button0 = element("button");
+    			t3 = text("Add");
+    			t4 = space();
     			button1 = element("button");
     			button1.textContent = "Reset";
-    			t4 = space();
+    			t6 = space();
     			div6 = element("div");
     			div1 = element("div");
     			div1.textContent = "Row";
-    			t6 = space();
+    			t8 = space();
     			div2 = element("div");
     			div2.textContent = "Manual";
-    			t8 = space();
+    			t10 = space();
     			div3 = element("div");
     			div3.textContent = "Currency";
-    			t10 = space();
+    			t12 = space();
     			div4 = element("div");
     			div4.textContent = "Rate";
-    			t12 = space();
+    			t14 = space();
     			div5 = element("div");
     			div5.textContent = "Adjust";
-    			t14 = space();
+    			t16 = space();
 
     			for (let i = 0; i < each_blocks.length; i += 1) {
     				each_blocks[i].c();
     			}
 
-    			select.disabled = select_disabled_value = /*$CurrencyStore*/ ctx[1].selected_currencies.length === /*$CurrencyStore*/ ctx[1].currency_rates.length;
+    			set_style(p, "margin-right", "16px");
+    			attr_dev(p, "class", "svelte-1kvb8vw");
+    			add_location(p, file$1, 68, 6, 1724);
+    			select.disabled = select_disabled_value = /*$CurrencyStore*/ ctx[2].selected_currencies.length === /*$CurrencyStore*/ ctx[2].currency_rates.length;
     			attr_dev(select, "class", "add-remove-currency select-currency svelte-1kvb8vw");
     			attr_dev(select, "name", "select-currency");
     			attr_dev(select, "id", "select-currency");
-    			if (/*selected_currency*/ ctx[0] === void 0) add_render_callback(() => /*select_change_handler*/ ctx[5].call(select));
-    			add_location(select, file$1, 44, 4, 966);
+    			if (/*selectedCurrency*/ ctx[1] === void 0) add_render_callback(() => /*select_change_handler*/ ctx[5].call(select));
+    			add_location(select, file$1, 69, 4, 1772);
+    			button0.disabled = button0_disabled_value = /*selectedCurrency*/ ctx[1].length === 0;
     			attr_dev(button0, "class", "svelte-1kvb8vw");
-    			add_location(button0, file$1, 58, 4, 1510);
+    			add_location(button0, file$1, 83, 4, 2315);
     			attr_dev(button1, "class", "svelte-1kvb8vw");
-    			add_location(button1, file$1, 59, 4, 1583);
+    			add_location(button1, file$1, 87, 4, 2445);
     			set_style(div0, "display", "flex");
+    			set_style(div0, "margin-bottom", "16px");
     			attr_dev(div0, "class", "svelte-1kvb8vw");
-    			add_location(div0, file$1, 43, 2, 933);
+    			add_location(div0, file$1, 67, 2, 1668);
     			attr_dev(div1, "class", "table-cell heading-title svelte-1kvb8vw");
-    			add_location(div1, file$1, 71, 4, 1812);
+    			add_location(div1, file$1, 99, 4, 2674);
     			attr_dev(div2, "class", "table-cell heading-title svelte-1kvb8vw");
-    			add_location(div2, file$1, 72, 4, 1864);
+    			add_location(div2, file$1, 100, 4, 2726);
     			attr_dev(div3, "class", "table-cell heading-title svelte-1kvb8vw");
-    			add_location(div3, file$1, 73, 4, 1919);
+    			add_location(div3, file$1, 101, 4, 2781);
     			attr_dev(div4, "class", "table-cell heading-title svelte-1kvb8vw");
-    			add_location(div4, file$1, 74, 4, 1976);
+    			add_location(div4, file$1, 102, 4, 2838);
     			attr_dev(div5, "class", "table-cell heading-title svelte-1kvb8vw");
-    			add_location(div5, file$1, 75, 4, 2029);
+    			add_location(div5, file$1, 103, 4, 2891);
     			set_style(div6, "display", "grid");
     			set_style(div6, "grid-template-columns", "repeat(5, auto)");
     			set_style(div6, "max-width", "480px");
     			attr_dev(div6, "class", "svelte-1kvb8vw");
-    			add_location(div6, file$1, 65, 2, 1688);
+    			add_location(div6, file$1, 93, 2, 2550);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div0, anchor);
+    			append_dev(div0, p);
+    			append_dev(div0, t1);
     			append_dev(div0, select);
 
     			for (let i = 0; i < each_blocks_1.length; i += 1) {
     				each_blocks_1[i].m(select, null);
     			}
 
-    			select_option(select, /*selected_currency*/ ctx[0]);
-    			append_dev(div0, t0);
-    			append_dev(div0, button0);
+    			select_option(select, /*selectedCurrency*/ ctx[1]);
     			append_dev(div0, t2);
+    			append_dev(div0, button0);
+    			append_dev(button0, t3);
+    			append_dev(div0, t4);
     			append_dev(div0, button1);
-    			insert_dev(target, t4, anchor);
+    			insert_dev(target, t6, anchor);
     			insert_dev(target, div6, anchor);
     			append_dev(div6, div1);
-    			append_dev(div6, t6);
-    			append_dev(div6, div2);
     			append_dev(div6, t8);
-    			append_dev(div6, div3);
+    			append_dev(div6, div2);
     			append_dev(div6, t10);
-    			append_dev(div6, div4);
+    			append_dev(div6, div3);
     			append_dev(div6, t12);
-    			append_dev(div6, div5);
+    			append_dev(div6, div4);
     			append_dev(div6, t14);
+    			append_dev(div6, div5);
+    			append_dev(div6, t16);
 
     			for (let i = 0; i < each_blocks.length; i += 1) {
     				each_blocks[i].m(div6, null);
@@ -3953,7 +3967,7 @@ var app = (function () {
     						button0,
     						"click",
     						function () {
-    							if (is_function(/*handleAddCurrency*/ ctx[3](/*selected_currency*/ ctx[0]))) /*handleAddCurrency*/ ctx[3](/*selected_currency*/ ctx[0]).apply(this, arguments);
+    							if (is_function(/*handleAddCurrency*/ ctx[3](/*selectedCurrency*/ ctx[1]))) /*handleAddCurrency*/ ctx[3](/*selectedCurrency*/ ctx[1]).apply(this, arguments);
     						},
     						false,
     						false,
@@ -3968,23 +3982,27 @@ var app = (function () {
     		p: function update(new_ctx, dirty) {
     			ctx = new_ctx;
 
-    			if (dirty & /*$CurrencyStore*/ 2) {
-    				each_value_1 = /*$CurrencyStore*/ ctx[1].currency_rates;
+    			if (dirty & /*$CurrencyStore*/ 4) {
+    				each_value_1 = /*$CurrencyStore*/ ctx[2].currency_rates;
     				validate_each_argument(each_value_1);
     				validate_each_keys(ctx, each_value_1, get_each_context_1, get_key);
     				each_blocks_1 = update_keyed_each(each_blocks_1, dirty, get_key, 1, ctx, each_value_1, each0_lookup, select, destroy_block, create_each_block_1, null, get_each_context_1);
     			}
 
-    			if (dirty & /*$CurrencyStore*/ 2 && select_disabled_value !== (select_disabled_value = /*$CurrencyStore*/ ctx[1].selected_currencies.length === /*$CurrencyStore*/ ctx[1].currency_rates.length)) {
+    			if (dirty & /*$CurrencyStore*/ 4 && select_disabled_value !== (select_disabled_value = /*$CurrencyStore*/ ctx[2].selected_currencies.length === /*$CurrencyStore*/ ctx[2].currency_rates.length)) {
     				prop_dev(select, "disabled", select_disabled_value);
     			}
 
-    			if (dirty & /*selected_currency, $CurrencyStore*/ 3) {
-    				select_option(select, /*selected_currency*/ ctx[0]);
+    			if (dirty & /*selectedCurrency, $CurrencyStore*/ 6) {
+    				select_option(select, /*selectedCurrency*/ ctx[1]);
     			}
 
-    			if (dirty & /*$CurrencyStore, handleChange*/ 6) {
-    				each_value = /*$CurrencyStore*/ ctx[1].currency_rates;
+    			if (dirty & /*selectedCurrency, $CurrencyStore*/ 6 && button0_disabled_value !== (button0_disabled_value = /*selectedCurrency*/ ctx[1].length === 0)) {
+    				prop_dev(button0, "disabled", button0_disabled_value);
+    			}
+
+    			if (dirty & /*$CurrencyStore, selectedCurrencies*/ 5) {
+    				each_value = /*$CurrencyStore*/ ctx[2].currency_rates;
     				validate_each_argument(each_value);
     				validate_each_keys(ctx, each_value, get_each_context, get_key_1);
     				each_blocks = update_keyed_each(each_blocks, dirty, get_key_1, 1, ctx, each_value, each1_lookup, div6, destroy_block, create_each_block, null, get_each_context);
@@ -3997,7 +4015,7 @@ var app = (function () {
     				each_blocks_1[i].d();
     			}
 
-    			if (detaching) detach_dev(t4);
+    			if (detaching) detach_dev(t6);
     			if (detaching) detach_dev(div6);
 
     			for (let i = 0; i < each_blocks.length; i += 1) {
@@ -4013,7 +4031,7 @@ var app = (function () {
     		block,
     		id: create_default_slot.name,
     		type: "slot",
-    		source: "(43:0) <Card>",
+    		source: "(67:0) <Card>",
     		ctx
     	});
 
@@ -4046,7 +4064,7 @@ var app = (function () {
     		p: function update(ctx, [dirty]) {
     			const card_changes = {};
 
-    			if (dirty & /*$$scope, $CurrencyStore, selected_currency*/ 131075) {
+    			if (dirty & /*$$scope, $CurrencyStore, selectedCurrencies, selectedCurrency*/ 262151) {
     				card_changes.$$scope = { dirty, ctx };
     			}
 
@@ -4077,30 +4095,44 @@ var app = (function () {
     	return block;
     }
 
+    const chage_handler = () => {
+    	
+    };
+
+    const change_handler = () => {
+    	
+    };
+
     function instance$1($$self, $$props, $$invalidate) {
+    	let selectedCurrency;
+    	let selectedCurrencies;
     	let $CurrencyStore;
     	validate_store(CurrencyStore, 'CurrencyStore');
-    	component_subscribe($$self, CurrencyStore, $$value => $$invalidate(1, $CurrencyStore = $$value));
+    	component_subscribe($$self, CurrencyStore, $$value => $$invalidate(2, $CurrencyStore = $$value));
     	let { $$slots: slots = {}, $$scope } = $$props;
     	validate_slots('SymbolList', slots, []);
-    	let selected_currency;
 
     	const handleInput = symbol => {
     		console.log(symbol);
     	};
 
-    	const handleChange = currencyRate => {
-    		console.log(currencyRate);
+    	const handleCurrencyRateChange = currencyRateElement => {
+    		console.log(currencyRateElement);
     	};
 
-    	const handleAddCurrency = selected_currency => {
-    		console.log("ssFF");
+    	const handleAddCurrency = selectedCurrencyName => {
+    		if (selectedCurrencyName.length > 0) {
+    			console.log(`Adding ${selectedCurrencyName}`);
 
-    		CurrencyStore.update(currentState => {
-    			let newState = currentState;
-    			newState.selected_currencies = [selected_currency, ...newState.selected_currencies];
-    			return newState;
-    		});
+    			CurrencyStore.update(currentState => {
+    				let newState = currentState;
+    				newState.selected_currencies = [selectedCurrencyName, ...newState.selected_currencies];
+    				newState.selected_currencies.sort();
+    				return newState;
+    			});
+
+    			$$invalidate(1, selectedCurrency = "");
+    		}
     	};
 
     	const handleResetCurrencies = () => {
@@ -4113,6 +4145,21 @@ var app = (function () {
     		});
     	};
 
+    	const updateSelectedCurrencies = currency_model => {
+    		let selectedCurrencies = [];
+
+    		for (let selectedCurrency of currency_model.selected_currencies) {
+    			selectedCurrencies.push(currency_model.currency_rates.filter(v => v.name === selectedCurrency)[0]);
+    		}
+
+    		return selectedCurrencies;
+    	};
+
+    	CurrencyStore.subscribe(value => {
+    		$$invalidate(0, selectedCurrencies = updateSelectedCurrencies(value));
+    		console.log(value.selected_currencies);
+    	});
+
     	const writable_props = [];
 
     	Object.keys($$props).forEach(key => {
@@ -4120,27 +4167,25 @@ var app = (function () {
     	});
 
     	function select_change_handler() {
-    		selected_currency = select_value(this);
-    		$$invalidate(0, selected_currency);
+    		selectedCurrency = select_value(this);
+    		$$invalidate(1, selectedCurrency);
     	}
 
     	const click_handler = () => {
     		handleResetCurrencies();
     	};
 
+    	const func = (currencyRate, v, i) => v.name === currencyRate.name;
+
     	function input0_change_handler(each_value, i) {
     		each_value[i].has_manual_rate = this.checked;
     		CurrencyStore.set($CurrencyStore);
     	}
 
-    	const chage_handler = currencyRate => handleChange(currencyRate);
-
     	function input_input_handler(each_value, i) {
     		each_value[i].manual_rate = to_number(this.value);
     		CurrencyStore.set($CurrencyStore);
     	}
-
-    	const change_handler = currencyRate => handleChange(currencyRate);
 
     	function input1_input_handler(each_value, i) {
     		each_value[i].adjustment = to_number(this.value);
@@ -4149,38 +4194,44 @@ var app = (function () {
 
     	$$self.$capture_state = () => ({
     		CurrencyStore,
+    		DollarStore,
     		fade,
     		scale,
     		Card,
     		Button,
-    		selected_currency,
     		handleInput,
-    		handleChange,
+    		handleCurrencyRateChange,
     		handleAddCurrency,
     		handleResetCurrencies,
+    		updateSelectedCurrencies,
+    		selectedCurrencies,
+    		selectedCurrency,
     		$CurrencyStore
     	});
 
     	$$self.$inject_state = $$props => {
-    		if ('selected_currency' in $$props) $$invalidate(0, selected_currency = $$props.selected_currency);
+    		if ('selectedCurrencies' in $$props) $$invalidate(0, selectedCurrencies = $$props.selectedCurrencies);
+    		if ('selectedCurrency' in $$props) $$invalidate(1, selectedCurrency = $$props.selectedCurrency);
     	};
 
     	if ($$props && "$$inject" in $$props) {
     		$$self.$inject_state($$props.$$inject);
     	}
 
+    	$$invalidate(1, selectedCurrency = "");
+    	$$invalidate(0, selectedCurrencies = []);
+
     	return [
-    		selected_currency,
+    		selectedCurrencies,
+    		selectedCurrency,
     		$CurrencyStore,
-    		handleChange,
     		handleAddCurrency,
     		handleResetCurrencies,
     		select_change_handler,
     		click_handler,
+    		func,
     		input0_change_handler,
-    		chage_handler,
     		input_input_handler,
-    		change_handler,
     		input1_input_handler
     	];
     }
@@ -4206,45 +4257,56 @@ var app = (function () {
 
     function create_fragment(ctx) {
     	let main;
-    	let div;
+    	let div1;
     	let p;
     	let t1;
-    	let button;
+    	let div0;
+    	let button0;
     	let t3;
-    	let botpanel;
-    	let t4;
-    	let dollarpanel;
+    	let button1;
     	let t5;
     	let symbollist;
+    	let t6;
+    	let dollarpanel;
+    	let t7;
+    	let botpanel;
     	let current;
     	let mounted;
     	let dispose;
-    	botpanel = new BotPanel({ $$inline: true });
-    	dollarpanel = new DollarPanel({ $$inline: true });
     	symbollist = new SymbolList({ $$inline: true });
+    	dollarpanel = new DollarPanel({ $$inline: true });
+    	botpanel = new BotPanel({ $$inline: true });
 
     	const block = {
     		c: function create() {
     			main = element("main");
-    			div = element("div");
+    			div1 = element("div");
     			p = element("p");
     			p.textContent = "Exchange Admin Panel";
     			t1 = space();
-    			button = element("button");
-    			button.textContent = "Save";
+    			div0 = element("div");
+    			button0 = element("button");
+    			button0.textContent = "Refresh";
     			t3 = space();
-    			create_component(botpanel.$$.fragment);
-    			t4 = space();
-    			create_component(dollarpanel.$$.fragment);
+    			button1 = element("button");
+    			button1.textContent = "Save";
     			t5 = space();
     			create_component(symbollist.$$.fragment);
-    			attr_dev(p, "class", "svelte-1r27g2b");
+    			t6 = space();
+    			create_component(dollarpanel.$$.fragment);
+    			t7 = space();
+    			create_component(botpanel.$$.fragment);
+    			attr_dev(p, "class", "svelte-1g3lybi");
     			add_location(p, file, 24, 6, 558);
-    			attr_dev(button, "class", "svelte-1r27g2b");
-    			add_location(button, file, 25, 4, 591);
-    			set_style(div, "display", "flex");
-    			set_style(div, "justify-content", "space-between");
-    			add_location(div, file, 23, 2, 492);
+    			attr_dev(button0, "class", "svelte-1g3lybi");
+    			add_location(button0, file, 26, 4, 626);
+    			attr_dev(button1, "class", "svelte-1g3lybi");
+    			add_location(button1, file, 33, 4, 749);
+    			set_style(div0, "display", "flex");
+    			add_location(div0, file, 25, 6, 593);
+    			set_style(div1, "display", "flex");
+    			set_style(div1, "justify-content", "space-between");
+    			add_location(div1, file, 23, 2, 492);
     			attr_dev(main, "class", "container");
     			add_location(main, file, 22, 0, 465);
     		},
@@ -4253,44 +4315,51 @@ var app = (function () {
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, main, anchor);
-    			append_dev(main, div);
-    			append_dev(div, p);
-    			append_dev(div, t1);
-    			append_dev(div, button);
-    			append_dev(main, t3);
-    			mount_component(botpanel, main, null);
-    			append_dev(main, t4);
-    			mount_component(dollarpanel, main, null);
+    			append_dev(main, div1);
+    			append_dev(div1, p);
+    			append_dev(div1, t1);
+    			append_dev(div1, div0);
+    			append_dev(div0, button0);
+    			append_dev(div0, t3);
+    			append_dev(div0, button1);
     			append_dev(main, t5);
     			mount_component(symbollist, main, null);
+    			append_dev(main, t6);
+    			mount_component(dollarpanel, main, null);
+    			append_dev(main, t7);
+    			mount_component(botpanel, main, null);
     			current = true;
 
     			if (!mounted) {
-    				dispose = listen_dev(button, "click", /*click_handler*/ ctx[0], false, false, false);
+    				dispose = [
+    					listen_dev(button0, "click", /*click_handler*/ ctx[0], false, false, false),
+    					listen_dev(button1, "click", /*click_handler_1*/ ctx[1], false, false, false)
+    				];
+
     				mounted = true;
     			}
     		},
     		p: noop,
     		i: function intro(local) {
     			if (current) return;
-    			transition_in(botpanel.$$.fragment, local);
-    			transition_in(dollarpanel.$$.fragment, local);
     			transition_in(symbollist.$$.fragment, local);
+    			transition_in(dollarpanel.$$.fragment, local);
+    			transition_in(botpanel.$$.fragment, local);
     			current = true;
     		},
     		o: function outro(local) {
-    			transition_out(botpanel.$$.fragment, local);
-    			transition_out(dollarpanel.$$.fragment, local);
     			transition_out(symbollist.$$.fragment, local);
+    			transition_out(dollarpanel.$$.fragment, local);
+    			transition_out(botpanel.$$.fragment, local);
     			current = false;
     		},
     		d: function destroy(detaching) {
     			if (detaching) detach_dev(main);
-    			destroy_component(botpanel);
-    			destroy_component(dollarpanel);
     			destroy_component(symbollist);
+    			destroy_component(dollarpanel);
+    			destroy_component(botpanel);
     			mounted = false;
-    			dispose();
+    			run_all(dispose);
     		}
     	};
 
@@ -4322,6 +4391,10 @@ var app = (function () {
     	});
 
     	const click_handler = async () => {
+    		await reloadStateFromServer();
+    	};
+
+    	const click_handler_1 = async () => {
     		await sendStateToServer();
     	};
 
@@ -4335,7 +4408,7 @@ var app = (function () {
     		onMount
     	});
 
-    	return [click_handler];
+    	return [click_handler, click_handler_1];
     }
 
     class App extends SvelteComponentDev {

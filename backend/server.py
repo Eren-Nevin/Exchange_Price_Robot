@@ -20,8 +20,13 @@ class Server:
         Extend(self.app)
 
         self.xe_crawler = XeCrawler()
+        xe_rates: XeResult = self.xe_crawler.get_xe_rates(False)
+
         self.last_rates = self.xe_crawler.get_xe_rates(False)
         self.app_state = AppState.initialize_test()
+
+        self.app_state.currency_model.currency_rates =\
+            self.xe_crawler.convert_xe_results_to_currency_rate_list(xe_rates)
 
         self.app.add_route(self.get_all_rates, 'api/get_all_rates', ['GET'])
         self.app.add_route(self.get_state, 'api/get_state', ['GET'])
@@ -44,6 +49,8 @@ class Server:
         return res
 
     async def get_state(self, request: Request):
+        print("Updating rates")
+        self.update_app_state_with_xe()
         print("Sending State to client")
         res = json(dataclasses.asdict(self.app_state))
         res.headers.extend({'Access-Control-Allow-Origin': '*'})
@@ -58,6 +65,12 @@ class Server:
 
         pprint(asdict(self.app_state))
         return json({'status': 'OK'})
+
+    def update_app_state_with_xe(self):
+        last_xe_rates: XeResult = self.xe_crawler.get_xe_rates(False)
+        for currency_rate in self.app_state.currency_model.currency_rates:
+            currency_rate.rate = round(last_xe_rates.rates[currency_rate.name],
+                                       4)
 
 
 server = Server()

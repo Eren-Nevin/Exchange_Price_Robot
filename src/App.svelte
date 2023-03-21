@@ -23,6 +23,14 @@
 <main class="container">
   <div style="display: flex; justify-content:space-between;">
       <p> Exchange Admin Panel</p>
+      <div style="display: flex;">
+    <button
+      on:click={async () => {
+        await reloadStateFromServer()
+      }}
+    >
+      Refresh
+    </button>
     <button
       on:click={async () => {
         await sendStateToServer();
@@ -30,10 +38,11 @@
     >
       Save
     </button>
+      </div>
   </div>
-  <BotPanel />
-  <DollarPanel />
   <SymbolList />
+  <DollarPanel />
+  <BotPanel />
 </main>
 
 <style>
@@ -42,6 +51,7 @@
     }
   button {
     /* color: #fff; */
+      margin: 0px 8px;
     border: 0;
     border-radius: 8px;
     /* color: #fff; */

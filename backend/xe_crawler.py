@@ -4,6 +4,7 @@ from time import sleep
 from typing import Dict, List
 from bs4 import BeautifulSoup
 import requests
+from models import CurrencyRate
 
 from selenium_catcher import get_auth_token
 
@@ -43,7 +44,7 @@ class XeCrawler:
     def __init__(self) -> None:
         # This is a sample auth, it needs to be referehsed
         self.auth =\
-                'Basic bG9kZXN0YXI6REdPTEV4MGNOTzVXTk96NTNFVGc2aWhtY2g5OE1sMkU='
+            'Basic bG9kZXN0YXI6REdPTEV4MGNOTzVXTk96NTNFVGc2aWhtY2g5OE1sMkU='
         super().__init__()
 
     def refresh_auth(self):
@@ -81,7 +82,6 @@ class XeCrawler:
 
         res_dict = res.json()
 
-
         xe_timestamp = res_dict['timestamp']
         xe_rates: Dict[str, float] = {}
 
@@ -89,6 +89,19 @@ class XeCrawler:
             xe_rates[key] = float(value)
 
         return XeResult(xe_timestamp, xe_rates)
+
+    def convert_xe_results_to_currency_rate_list(self, xe_result: XeResult):
+        rates: List[CurrencyRate] = []
+        for name, value in xe_result.rates.items():
+            rate = CurrencyRate(name, round(value, 4),
+                                False, round(value, 4), 0)
+            rates.append(rate)
+
+        rates.reverse()
+
+
+        return rates
+
 
 if __name__ == '__main__':
     crawler = XeCrawler()

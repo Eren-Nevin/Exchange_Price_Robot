@@ -40,6 +40,7 @@ class CurrencyRate:
     adjustment: int
 
 
+
 @dataclass()
 class CurrencyModel:
     selected_currencies: List[str]
@@ -84,9 +85,3 @@ class AppState:
         bot_model = BotModel(disabled=False, onTime=True, onChange=False,
                              interval=BotInterval(unit='Hour', value=1))
         return AppState(dollar_model, currency_model, bot_model)
-
-    # @staticmethod
-    # def from_dict(self, state_dict: Dict):
-    #     return AppState(
-
-    #             )

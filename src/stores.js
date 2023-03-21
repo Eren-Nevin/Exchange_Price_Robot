@@ -131,9 +131,7 @@ function botStoreDataAdapter(bot_model) {
 }
 
 function currencyStoreDataAdapter(currency_model) {
-    let received_currency_rates = []
-
-
+  let received_currency_rates = [];
 
   for (let raw_model of currency_model.currency_rates) {
     let new_currency = new CurrencyRate(
@@ -143,18 +141,22 @@ function currencyStoreDataAdapter(currency_model) {
       raw_model.manual_rate,
       raw_model.adjustment
     );
-    received_currency_rates = [new_currency, ...received_currency_rates]
+    received_currency_rates = [new_currency, ...received_currency_rates];
   }
-    let new_currency_state = {
-      selected_currencies: currency_model.selected_currencies,
-      currency_rates: received_currency_rates,
-    };
+
+  received_currency_rates = [
+    ...received_currency_rates.sort((a, b) => a.name.localeCompare(b.name)),
+  ];
+  console.log(received_currency_rates);
+  let new_currency_state = {
+    selected_currencies: currency_model.selected_currencies,
+    currency_rates: received_currency_rates,
+  };
   return new_currency_state;
 }
 
 export async function reloadStateFromServer() {
   let raw_state = await getStateFromServer();
-  console.log(raw_state);
 
   let new_dollar_state = dollarStoreDataAdapter(raw_state.dollar_model);
   let new_bot_state = botStoreDataAdapter(raw_state.bot_model);
@@ -182,9 +184,10 @@ export function startUpdatingAppState() {
     app_state.dollar_model = dollar_model;
   });
   let currencySub = CurrencyStore.subscribe((currency_model) => {
-    app_state.currency_model = { 
-        selected_currencies: currency_model.selected_currencies,
-        currency_rates: [...currency_model.currency_rates] };
+    app_state.currency_model = {
+      selected_currencies: currency_model.selected_currencies,
+      currency_rates: [...currency_model.currency_rates],
+    };
   });
   let botSub = BotStore.subscribe((bot_model) => {
     app_state.bot_model = bot_model;
