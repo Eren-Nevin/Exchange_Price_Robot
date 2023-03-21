@@ -11,6 +11,8 @@ selenium-wire = "*"
 selenium = "*"
 sanic = {extras = ["ext"], version = "*"}
 dataclass-wizard = "*"
+pyrogram = "*"
+tgcrypto = "*"
 
 [dev-packages]
 
