@@ -1,3 +1,8 @@
+import threading
+import time
+import schedule
+
+
 from pprint import pprint
 import dataclasses
 from pathlib import Path
@@ -10,6 +15,29 @@ from xe_crawler import XeResult, XeCrawler
 
 from dataclass_wizard import fromdict, asdict
 
+def run_continuously(interval=1):
+    """Continuously run, while executing pending jobs at each
+    elapsed time interval.
+    @return cease_continuous_run: threading. Event which can
+    be set to cease continuous run. Please note that it is
+    *intended behavior that run_continuously() does not run
+    missed jobs*. For example, if you've registered a job that
+    should run every minute and you set a continuous run
+    interval of one hour then your job won't be run 60 times
+    at each interval but only once.
+    """
+    cease_continuous_run = threading.Event()
+
+    class ScheduleThread(threading.Thread):
+        @classmethod
+        def run(cls):
+            while not cease_continuous_run.is_set():
+                schedule.run_pending()
+                time.sleep(interval)
+
+    continuous_thread = ScheduleThread()
+    continuous_thread.start()
+    return cease_continuous_run
 
 class Server:
     def __init__(self) -> None:
@@ -24,6 +52,8 @@ class Server:
 
         self.last_rates = self.xe_crawler.get_xe_rates(False)
         self.app_state = AppState.initialize_test()
+
+        self.update_app_state_with_xe()
 
         self.app_state.currency_model.currency_rates =\
             self.xe_crawler.convert_xe_results_to_currency_rate_list(xe_rates)
@@ -66,15 +96,27 @@ class Server:
         pprint(asdict(self.app_state))
         return json({'status': 'OK'})
 
-    def update_app_state_with_xe(self):
-        last_xe_rates: XeResult = self.xe_crawler.get_xe_rates(False)
+    def update_app_state_with_xe_result(self, xe_result: XeResult):
         for currency_rate in self.app_state.currency_model.currency_rates:
-            currency_rate.rate = round(last_xe_rates.rates[currency_rate.name],
+            if currency_rate.currencyCode in xe_result.rates:
+                currency_rate.rate =\
+                round(xe_result.rates[currency_rate.currencyCode],
                                        4)
 
 
+    def update_app_state_with_xe(self):
+        last_xe_rates: XeResult = self.xe_crawler.get_xe_rates(False)
+        self.update_app_state_with_xe_result(last_xe_rates)
+
+    # This checks the xe website each minute and updates the app state.
+    def start_continous_xe_crawling(self):
+        schedule.every().minute.do(self.update_app_state_with_xe)
+        stop_run = run_continuously()
+        return stop_run
+
 server = Server()
 
-
 if __name__ == '__main__':
+    stop_run = server.start_continous_xe_crawling()
     server.app.run('localhost', 7777, auto_reload=True)
+    stop_run.set()

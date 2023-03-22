@@ -16,15 +16,17 @@ class AppState {
 
 export class CurrencyRate {
   uid;
-  name;
+  currencyCode;
+    alias_name;
   rate;
   has_manual_rate;
   manual_rate;
   adjustment;
 
-  constructor(name, rate, has_manual_rate, manual_rate, adjustment) {
+  constructor(currencyCode, alias_name, rate, has_manual_rate, manual_rate, adjustment) {
     this.uid = v4();
-    this.name = name;
+    this.currencyCode = currencyCode;
+      this.alias_name = alias_name
     this.rate = rate;
     this.has_manual_rate = has_manual_rate;
     this.manual_rate = manual_rate;
@@ -74,7 +76,7 @@ export const BotStore = writable({
   onTime: true,
   onChange: false,
 
-  interval: new BotInterval("H", 2),
+  interval: new BotInterval("Min", 2),
 });
 
 export async function getStateFromServer() {
@@ -101,6 +103,8 @@ function dollarStoreDataAdapter(dollar_model) {
       ...rec_historic_prices,
     ];
   }
+
+  rec_historic_prices.sort((a, b) => b.timestamp - a.timestamp);
 
   let new_dollar_state = {
     current_price: new DollarPrice(
@@ -135,7 +139,8 @@ function currencyStoreDataAdapter(currency_model) {
 
   for (let raw_model of currency_model.currency_rates) {
     let new_currency = new CurrencyRate(
-      raw_model.name,
+      raw_model.currencyCode,
+        raw_model.alias_name,
       raw_model.rate,
       raw_model.has_manual_rate,
       raw_model.manual_rate,
@@ -145,7 +150,7 @@ function currencyStoreDataAdapter(currency_model) {
   }
 
   received_currency_rates = [
-    ...received_currency_rates.sort((a, b) => a.name.localeCompare(b.name)),
+    ...received_currency_rates.sort((a, b) => a.currencyCode.localeCompare(b.currencyCode)),
   ];
   console.log(received_currency_rates);
   let new_currency_state = {
@@ -156,6 +161,7 @@ function currencyStoreDataAdapter(currency_model) {
 }
 
 export async function reloadStateFromServer() {
+  console.log("Getting state from server");
   let raw_state = await getStateFromServer();
 
   let new_dollar_state = dollarStoreDataAdapter(raw_state.dollar_model);
@@ -196,6 +202,7 @@ export function startUpdatingAppState() {
 
 export async function sendStateToServer() {
   let app_state_json = JSON.stringify(app_state);
+    console.log(app_state_json)
   let app_server_address = "http://localhost:7777";
   let raw_res = await fetch(`${app_server_address}/api/send_state`, {
     method: "POST",
@@ -205,7 +212,7 @@ export async function sendStateToServer() {
     body: app_state_json,
   });
 
-  console.log(raw_res);
+  // console.log(raw_res);
 }
 
 // dollar_model: DollarModel

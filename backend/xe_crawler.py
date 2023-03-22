@@ -78,8 +78,6 @@ class XeCrawler:
             headers=self.get_headers(),
         )
 
-        pprint(res.text)
-
         res_dict = res.json()
 
         xe_timestamp = res_dict['timestamp']
@@ -93,22 +91,22 @@ class XeCrawler:
     def convert_xe_results_to_currency_rate_list(self, xe_result: XeResult):
         rates: List[CurrencyRate] = []
         for name, value in xe_result.rates.items():
-            rate = CurrencyRate(name, round(value, 4),
+            rate = CurrencyRate(name, name, round(value, 4),
                                 False, round(value, 4), 0)
             rates.append(rate)
 
         rates.reverse()
-
 
         return rates
 
 
 if __name__ == '__main__':
     crawler = XeCrawler()
-    for i in range(5):
-        if i == 0:
-            pprint(crawler.get_xe_rates(True).rates)
-        else:
-            pprint(crawler.get_xe_rates(False).rates)
 
-        sleep(3)
+    # for i in range(5):
+    #     if i == 0:
+    #         pprint(crawler.get_xe_rates(True).rates)
+    #     else:
+    #         pprint(crawler.get_xe_rates(False).rates)
+
+    # sleep(3)

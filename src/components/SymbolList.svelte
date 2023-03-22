@@ -1,11 +1,123 @@
 <script>
   // TODO: Rename file
-  import { CurrencyStore, DollarStore } from "../stores";
+  import { CurrencyRate, CurrencyStore, DollarStore } from "../stores";
   import { fade, scale } from "svelte/transition";
   import Card from "./Card.svelte";
   import Button from "./Button.svelte";
+  import { onMount } from "svelte";
 
   $: selectedCurrency = "";
+
+  let updated_current_currencies;
+
+  $: addingNewCurrency = true;
+
+  $: newCurrency = {
+    currencyCode: "",
+    alias_name: "",
+    rate: 1,
+    has_manual_rate: true,
+    manual_rate: 1,
+    adjustment: 0,
+  };
+
+  const updateAddingNewCurrency = (currencyCode) => {
+    let current_currencies_codes = updated_current_currencies.map(
+      (v) => v.currencyCode
+    );
+    if (current_currencies_codes.includes(currencyCode)) {
+      addingNewCurrency = false;
+    } else {
+      addingNewCurrency = true;
+    }
+  };
+
+  const onNewFieldChangeHandler = (event) => {
+    console.log(newCurrency.currencyCode);
+    updateAddingNewCurrency(newCurrency.currencyCode);
+  };
+
+  const handleDeleteCurrency = () => {
+    console.log(`Deleting ${newCurrency}`);
+    CurrencyStore.update((currentState) => {
+      let newState = currentState;
+
+      let newCurrencyRates = newState.currency_rates.filter(
+        (currency_rate) =>
+          currency_rate.currencyCode != newCurrency.currencyCode
+      );
+
+        newCurrencyRates = newCurrencyRates.filter(item => item)
+
+      newState.currency_rates = [...newCurrencyRates];
+
+      resetNewCurrency()
+      return newState;
+    });
+
+  };
+
+  const handleNewEditCurrency = () => {
+    console.log(`Adding ${newCurrency}`);
+    CurrencyStore.update((currentState) => {
+      let newState = currentState;
+
+      let current_currencies = currentState.currency_rates.map(
+        (v) => v.currencyCode
+      );
+      console.log(current_currencies);
+
+      if (
+        currentState.currency_rates
+          .map((v) => v.currencyCode)
+          .includes(newCurrency.currencyCode)
+      ) {
+        console.log("Editing");
+        let current_currency_rates = [...newState.currency_rates];
+        let index = current_currency_rates.findIndex(
+          (v) => v.currencyCode == newCurrency.currencyCode
+        );
+        current_currency_rates[index].alias_name = newCurrency.alias_name;
+        newState.currency_rates = [...current_currency_rates];
+      } else {
+        newState.currency_rates = [
+          new CurrencyRate(
+            newCurrency.currencyCode,
+            newCurrency.alias_name,
+            newCurrency.rate,
+            newCurrency.has_manual_rate,
+            newCurrency.manual_rate,
+            newCurrency.adjustment
+          ),
+
+          ...newState.currency_rates,
+        ];
+
+        newState.selected_currencies = [
+          newCurrency.currencyCode,
+          ...newState.selected_currencies,
+        ];
+      }
+
+      console.log(newState);
+
+        resetNewCurrency()
+
+      return newState;
+    });
+  };
+
+    const resetNewCurrency = () => {
+      newCurrency = {
+        currencyCode: "",
+        alias_name: "",
+        rate: 1,
+        has_manual_rate: true,
+        manual_rate: 1,
+        adjustment: 0,
+      };
+        addingNewCurrency = true
+    }
 
   const handleInput = (symbol) => {
     console.log(symbol);
@@ -14,9 +126,9 @@
     console.log(currencyRateElement);
   };
 
-  const handleAddCurrency = (selectedCurrencyName) => {
+  const handleSelectCurrency = (selectedCurrencyName) => {
     if (selectedCurrencyName.length > 0) {
-      console.log(`Adding ${selectedCurrencyName}`);
+      console.log(`Selecting ${selectedCurrencyName}`);
       CurrencyStore.update((currentState) => {
         let newState = currentState;
 
@@ -25,7 +137,7 @@
           ...newState.selected_currencies,
         ];
 
-        newState.selected_currencies.sort()
+        newState.selected_currencies.sort();
 
         return newState;
       });
@@ -45,28 +157,66 @@
     });
   };
 
-  const updateSelectedCurrencies = (currency_model) => {
-    let selectedCurrencies = [];
-    for (let selectedCurrency of currency_model.selected_currencies) {
-      selectedCurrencies.push(
-        currency_model.currency_rates.filter((v) => v.name ===
-            selectedCurrency)[0]
-      );
-    }
-    return selectedCurrencies;
-  };
-
   $: selectedCurrencies = [];
 
-  CurrencyStore.subscribe((value) => {
-    selectedCurrencies = updateSelectedCurrencies(value);
-    console.log(value.selected_currencies);
+  const updateSelectedCurrencies = (currency_model) => {
+    let m_SelectedCurrencies = [];
+    for (let selectedCurrency of currency_model.selected_currencies) {
+        let possibleSelected = currency_model.currency_rates.filter(
+          (v) => v.currencyCode === selectedCurrency
+        )[0]
+        if (possibleSelected){
+      m_SelectedCurrencies.push(
+          possibleSelected
+      );
+        }
+    }
+    console.log("Updating selected currencies");
+      console.log(m_SelectedCurrencies);
+    selectedCurrencies = m_SelectedCurrencies;
+  };
+
+  onMount(() => {
+    CurrencyStore.subscribe((currency_model) => {
+      updated_current_currencies = currency_model.currency_rates;
+      updateSelectedCurrencies(currency_model);
+      console.log(selectedCurrencies);
+    });
   });
 </script>
 
 <Card>
   <div style="display: flex; margin-bottom: 16px;">
-      <p style="margin-right: 16px;">Currency</p>
+    <p style="margin-right: 16px;">New / Edit Currency</p>
+    <input
+      on:change={(e) => {
+        onNewFieldChangeHandler(e);
+      }}
+      style="width: 56px; margin-right: 16px;"
+      type="text"
+      bind:value={newCurrency.currencyCode}
+    />
+    <input
+      style="width: 96px; margin-right: 16px;"
+      on:chage={() => {}}
+      type="text"
+      bind:value={newCurrency.alias_name}
+    />
+    <button
+      on:click={() => {
+        handleNewEditCurrency();
+      }}>{addingNewCurrency ? "Add" : "Edit"}</button
+    >
+    {#if !addingNewCurrency}
+      <button
+        on:click={() => {
+          handleDeleteCurrency();
+        }}>Delete</button
+      >
+    {/if}
+  </div>
+  <div style="display: flex; margin-bottom: 16px;">
+    <p style="margin-right: 16px;">Select Currency</p>
     <select
       disabled={$CurrencyStore.selected_currencies.length ===
         $CurrencyStore.currency_rates.length}
@@ -77,13 +227,15 @@
     >
       {#each $CurrencyStore.currency_rates as currencyRate, i (currencyRate.uid)}
         {#if !$CurrencyStore.selected_currencies.includes(currencyRate.name)}
-          <option value={currencyRate.name}>{currencyRate.name}</option>
+          <option value={currencyRate.currencyCode}
+            >{currencyRate.currencyCode}</option
+          >
         {/if}
       {/each}
     </select>
     <button
       disabled={selectedCurrency.length === 0}
-      on:click={handleAddCurrency(selectedCurrency)}>Add</button
+      on:click={handleSelectCurrency(selectedCurrency)}>Select</button
     >
     <button
       on:click={() => {
@@ -93,56 +245,57 @@
   </div>
   <div
     style="display: grid; 
-        grid-template-columns: repeat(5, auto);
+        grid-template-columns: repeat(6, auto);
         max-width: 480px;
         "
   >
     <div class="table-cell heading-title">Row</div>
     <div class="table-cell heading-title">Manual</div>
-    <div class="table-cell heading-title">Currency</div>
+    <div class="table-cell heading-title">Code</div>
+    <div class="table-cell heading-title">Name</div>
     <div class="table-cell heading-title">Rate</div>
-    <div class="table-cell heading-title">Adjust</div>
-    {#each $CurrencyStore.currency_rates as currencyRate, i (currencyRate.uid)}
-      {#if $CurrencyStore.selected_currencies.includes(currencyRate.name)}
-        <div class="table-cell">
-          <p>
-              {selectedCurrencies.findIndex((v, i) => v.name ===
-              currencyRate.name) + 1}
-          </p>
-        </div>
+    <div class="table-cell heading-title">Adjustment</div>
+    {#each selectedCurrencies as currencyRate, i (currencyRate.uid)}
+      <div class="table-cell">
+          <p>{i+1}</p>
+      </div>
 
-        <div class="table-cell">
-          <input type="checkbox" bind:checked={currencyRate.has_manual_rate} />
-        </div>
-        <div class="table-cell">
-          <p>
-            {currencyRate.name}
-          </p>
-        </div>
-        <div class="table-cell">
-          {#if currencyRate.has_manual_rate}
-            <input
-              on:chage={() => {}}
-              type="number"
-              min="0"
-              step="0.0001"
-              bind:value={currencyRate.manual_rate}
-            />
-          {:else}
-            <p>
-              {currencyRate.rate}
-            </p>
-          {/if}
-        </div>
-        <div class="table-cell">
+      <div class="table-cell">
+        <input type="checkbox" bind:checked={currencyRate.has_manual_rate} />
+      </div>
+      <div class="table-cell">
+        <p>
+          {currencyRate.currencyCode}
+        </p>
+      </div>
+      <div class="table-cell">
+        <p>
+          {currencyRate.alias_name}
+        </p>
+      </div>
+      <div class="table-cell">
+        {#if currencyRate.has_manual_rate}
           <input
-            on:change={() => {}}
+            on:chage={() => {}}
             type="number"
-            step="50"
-            bind:value={currencyRate.adjustment}
+            min="0"
+            step="0.0001"
+            bind:value={currencyRate.manual_rate}
           />
-        </div>
-      {/if}
+        {:else}
+          <p>
+            {currencyRate.rate}
+          </p>
+        {/if}
+      </div>
+      <div class="table-cell">
+        <input
+          on:change={() => {}}
+          type="number"
+          step="50"
+          bind:value={currencyRate.adjustment}
+        />
+      </div>
     {/each}
   </div>
 </Card>

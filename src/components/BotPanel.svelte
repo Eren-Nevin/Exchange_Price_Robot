@@ -76,7 +76,7 @@
         name="interval-unit"
         id="interval-unit"
       >
-        <option value="Week">Minutes</option>
+        <option value="Min">Minutes</option>
         <option value="Hour">Hours</option>
         <option value="Day">Days</option>
       </select>

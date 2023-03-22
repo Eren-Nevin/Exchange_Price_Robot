@@ -25,15 +25,18 @@ class DollarModel:
 
 @dataclass()
 class CurrencyRate:
-    def __init__(self, name, rate, has_manual_rate, manual_rate, adjustment,
+    def __init__(self, currencyCode, alias_name, rate, has_manual_rate, manual_rate, adjustment,
                  uid=None) -> None:
         self.uid = uid if uid else str(uuid4())
-        self.name = name
+        self.currencyCode = currencyCode
+        self.alias_name = alias_name
         self.rate = rate
         self.has_manual_rate = has_manual_rate
         self.manual_rate = manual_rate
         self.adjustment = adjustment
-    name: str
+
+    currencyCode: str
+    alias_name: str
     rate: float
     has_manual_rate: bool
     manual_rate: float
@@ -77,11 +80,11 @@ class AppState:
 
         currency_model = CurrencyModel(
             selected_currencies=['EUR'],
-            currency_rates=[CurrencyRate('TRY', 19.01, False, 0, 500),
-                            CurrencyRate('EUR', 1.05, False, 0, 500)
+            currency_rates=[CurrencyRate('TRY', 'TRY', 19.01, False, 0, 500),
+                            CurrencyRate('EUR', 'EUR', 1.05, False, 0, 500)
                             ]
         )
 
         bot_model = BotModel(disabled=False, onTime=True, onChange=False,
-                             interval=BotInterval(unit='Hour', value=1))
+                             interval=BotInterval(unit='Min', value=1))
         return AppState(dollar_model, currency_model, bot_model)
