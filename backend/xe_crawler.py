@@ -27,11 +27,6 @@ from selenium_catcher import get_auth_token
 #   'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36'
 #   --compressed
 
-# @dataclass()
-# class XeRate:
-#     quote: str
-#     rate: float
-
 
 @dataclass()
 class XeResult:
@@ -84,7 +79,11 @@ class XeCrawler:
         xe_rates: Dict[str, float] = {}
 
         for key, value in res_dict['rates'].items():
-            xe_rates[key] = float(value)
+            if value:
+                xe_rates[key] = float(1/value)
+            else:
+                xe_rates[key] = 0
+
 
         return XeResult(xe_timestamp, xe_rates)
 
@@ -101,12 +100,5 @@ class XeCrawler:
 
 
 if __name__ == '__main__':
+
     crawler = XeCrawler()
-
-    # for i in range(5):
-    #     if i == 0:
-    #         pprint(crawler.get_xe_rates(True).rates)
-    #     else:
-    #         pprint(crawler.get_xe_rates(False).rates)
-
-    # sleep(3)

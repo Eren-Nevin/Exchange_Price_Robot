@@ -2,6 +2,8 @@ import { writable } from "svelte/store";
 import { MD5 } from "crypto-js/md5";
 import { v4 } from "uuid";
 
+let app_server_address = "http://localhost:7777";
+
 class AppState {
   dollar_model;
   currency_model;
@@ -17,16 +19,23 @@ class AppState {
 export class CurrencyRate {
   uid;
   currencyCode;
-    alias_name;
+  alias_name;
   rate;
   has_manual_rate;
   manual_rate;
   adjustment;
 
-  constructor(currencyCode, alias_name, rate, has_manual_rate, manual_rate, adjustment) {
+  constructor(
+    currencyCode,
+    alias_name,
+    rate,
+    has_manual_rate,
+    manual_rate,
+    adjustment
+  ) {
     this.uid = v4();
     this.currencyCode = currencyCode;
-      this.alias_name = alias_name
+    this.alias_name = alias_name;
     this.rate = rate;
     this.has_manual_rate = has_manual_rate;
     this.manual_rate = manual_rate;
@@ -80,7 +89,6 @@ export const BotStore = writable({
 });
 
 export async function getStateFromServer() {
-  let app_server_address = "http://localhost:7777";
   let raw_res = await fetch(
     `${app_server_address}/api/get_state`
     // {mode: 'no-cors'}
@@ -140,7 +148,7 @@ function currencyStoreDataAdapter(currency_model) {
   for (let raw_model of currency_model.currency_rates) {
     let new_currency = new CurrencyRate(
       raw_model.currencyCode,
-        raw_model.alias_name,
+      raw_model.alias_name,
       raw_model.rate,
       raw_model.has_manual_rate,
       raw_model.manual_rate,
@@ -150,9 +158,10 @@ function currencyStoreDataAdapter(currency_model) {
   }
 
   received_currency_rates = [
-    ...received_currency_rates.sort((a, b) => a.currencyCode.localeCompare(b.currencyCode)),
+    ...received_currency_rates.sort((a, b) =>
+      a.currencyCode.localeCompare(b.currencyCode)
+    ),
   ];
-  console.log(received_currency_rates);
   let new_currency_state = {
     selected_currencies: currency_model.selected_currencies,
     currency_rates: received_currency_rates,
@@ -201,9 +210,8 @@ export function startUpdatingAppState() {
 }
 
 export async function sendStateToServer() {
+  console.log("Sending state to server");
   let app_state_json = JSON.stringify(app_state);
-    console.log(app_state_json)
-  let app_server_address = "http://localhost:7777";
   let raw_res = await fetch(`${app_server_address}/api/send_state`, {
     method: "POST",
     headers: {

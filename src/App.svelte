@@ -1,5 +1,4 @@
 <script>
-
     // TODO: Add snackbar to let user know it is updated
   import BotPanel from "./components/BotPanel.svelte";
   import DollarPanel from "./components/DollarPanel.svelte";
@@ -19,7 +18,7 @@
 
   startUpdatingAppState();
 
-  let update_interval_ms = 20000;
+  let update_interval_ms = 60000;
 
   async function refereshState() {
     await sendStateToServer();

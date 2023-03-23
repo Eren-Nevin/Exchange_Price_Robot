@@ -4,7 +4,6 @@
   import Button from "./Button.svelte";
 
   const onTriggerChange = (e) => {
-    console.log(e.currentTarget.value);
     let selected = +e.currentTarget.value;
     BotStore.update((currentState) => {
       let new_state = JSON.parse(JSON.stringify(currentState));
@@ -23,11 +22,6 @@
 
     const onBotDisableButtonClicked = () => {
         $BotStore.disabled = !$BotStore.disabled;
-    }
-    const onBotSendNowButtonClicked = async () => {
-        console.log("Sending Bot Now!")
-        /* await reloadStateFromServer() */
-
     }
 </script>
 
@@ -89,12 +83,6 @@
       on:click={onBotDisableButtonClicked}
     >
       {$BotStore.disabled ? "Enable" : "Disable"}
-    </button>
-    <button
-    disabled={$BotStore.disabled}
-      on:click={onBotSendNowButtonClicked}
-    >
-      Send Now
     </button>
   </div>
 </Card>

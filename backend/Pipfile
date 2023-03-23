@@ -13,6 +13,8 @@ sanic = {extras = ["ext"], version = "*"}
 dataclass-wizard = "*"
 pyrogram = "*"
 tgcrypto = "*"
+schedule = "*"
+pyyaml = "*"
 
 [dev-packages]
 
