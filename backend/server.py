@@ -15,6 +15,9 @@ from xe_crawler import XeResult, XeCrawler
 
 from dataclass_wizard import fromdict, asdict
 
+server_address = '0.0.0.0'
+server_port = 7777
+
 def run_continuously(interval=1):
     """Continuously run, while executing pending jobs at each
     elapsed time interval.
@@ -89,8 +92,6 @@ class Server:
 
     async def send_state(self, request: Request):
         print("Getting state from client")
-        # raw_app_state = request.json
-
         self.app_state = fromdict(AppState, request.json)
 
         pprint(asdict(self.app_state))
@@ -118,5 +119,5 @@ server = Server()
 
 if __name__ == '__main__':
     stop_run = server.start_continous_xe_crawling()
-    server.app.run('localhost', 7777, auto_reload=True)
+    server.app.run(server_address, server_port)
     stop_run.set()

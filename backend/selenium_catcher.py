@@ -14,7 +14,6 @@ def get_auth_token():
 
     driver = webdriver.Chrome(chrome_options=options)
 
-    # Go to the Google home page
     driver.get('https://xe.com')
 
     # Access requests via the `requests` attribute

@@ -20,9 +20,6 @@ class DollarModel:
     current_price: DollarPrice
     historic_prices: List[DollarPrice]
 
-# TODO: Maybe use int instead of float
-
-
 @dataclass()
 class CurrencyRate:
     def __init__(self, currencyCode, alias_name, rate, has_manual_rate, manual_rate, adjustment,
