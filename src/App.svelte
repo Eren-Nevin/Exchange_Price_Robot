@@ -1,5 +1,4 @@
 <script>
-    // TODO: Add snackbar to let user know it is updated
   import BotPanel from "./components/BotPanel.svelte";
   import DollarPanel from "./components/DollarPanel.svelte";
 

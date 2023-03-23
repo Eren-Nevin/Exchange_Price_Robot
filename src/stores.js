@@ -1,5 +1,4 @@
 import { writable } from "svelte/store";
-import { MD5 } from "crypto-js/md5";
 import { v4 } from "uuid";
 
 let app_server_address = "http://localhost:7777";
@@ -104,7 +103,6 @@ export async function getStateFromServer() {
 function dollarStoreDataAdapter(dollar_model) {
   let rec_historic_prices = [];
 
-  // TODO: Fix date ordering
   for (let historic_price of dollar_model.historic_prices) {
     rec_historic_prices = [
       new DollarPrice(historic_price.price, historic_price.timestamp),
@@ -220,21 +218,4 @@ export async function sendStateToServer() {
     body: app_state_json,
   });
 
-  // console.log(raw_res);
 }
-
-// dollar_model: DollarModel
-// currency_model: CurrencyModel
-// bot_model: BotModel
-
-// def __init__(self) -> None:
-//     self.dollar_model = DollarModel(
-//         current_price=DollarPrice(44000, 1679313387),
-//         historic_prices=[DollarPrice(44135, 1678313387)]
-//     )
-
-//     self.currency_model = CurrencyModel([CurrencyRate('TRY', 19.01, False, 0, 500), ]
-//                                         )
-
-//     self.bot_model = BotModel(disabled=False, onTime=True, onChange=False,
-//                               interval=BotInterval(unit='Hour', value=1))

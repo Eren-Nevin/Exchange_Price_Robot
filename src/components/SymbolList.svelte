@@ -1,5 +1,4 @@
 <script>
-  // TODO: Rename file
   import { CurrencyRate, CurrencyStore, DollarStore } from "../stores";
   import { fade, scale } from "svelte/transition";
   import Card from "./Card.svelte";

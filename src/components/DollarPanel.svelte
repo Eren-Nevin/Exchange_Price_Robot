@@ -1,22 +1,11 @@
 <script>
-  import { v4 as uuidv4 } from "uuid";
   import { DollarStore, DollarPrice } from "../stores.js";
   import Button from "./Button.svelte";
   import Card from "./Card.svelte";
 
-  let timePickerOptions = {
-    bgColor: "#9b2c2c",
-    hasButtons: true,
-  };
-
   let manual_rate = "";
 
-    // TODO: initialize this to have a default value
   let user_selected_timedate;
-
-  const handleChange = (symbol) => {
-    console.log(symbol);
-  };
 
   const handleSubmit = (new_price) => {
     console.log(new_price);
@@ -35,7 +24,6 @@
 
       let new_dollar_price = new DollarPrice(
         new_price,
-        /* Math.floor(new Date() / 1000) */
           user_selected_timedate instanceof String ?
           Math.floor(Date.parse(user_selected_timedate) / 1000) :
           Math.floor(new Date() / 1000)
@@ -50,11 +38,6 @@
     });
   };
 
-  const newDollarPriceTimeChanged = (e) => {
-    console.log(e.detail);
-  };
-
-  // TODO: Do we need to use locale?
   const convertTimestampToDate = (timestamp) => {
     let pointInTime = new Date(timestamp * 1000);
     return pointInTime.toLocaleDateString();

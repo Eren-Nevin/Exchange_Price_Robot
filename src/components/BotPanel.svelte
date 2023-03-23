@@ -1,7 +1,6 @@
 <script>
   import Card from "./Card.svelte";
   import { BotStore, getStateFromServer, reloadStateFromServer, sendStateToServer } from "../stores";
-  import Button from "./Button.svelte";
 
   const onTriggerChange = (e) => {
     let selected = +e.currentTarget.value;
@@ -128,44 +127,4 @@
   }
 
 
-  /* .rating li { */
-  /*   position: relative; */
-  /*   background: #f4f4f4; */
-  /*   width: 50px; */
-  /*   height: 50px; */
-  /*   padding: 10px; */
-  /*   text-align: center; */
-  /*   border-radius: 50%; */
-  /*   font-size: 19px; */
-  /*   border: 1px #eee solid; */
-  /*   transition: 0.3s; */
-  /* } */
-
-  /* .rating li label { */
-  /*   position: absolute; */
-  /*   top: 50%; */
-  /*   left: 50%; */
-  /*   width: 50px; */
-  /*   height: 50px; */
-  /*   padding: 10px; */
-  /*   border-radius: 50%; */
-  /*   transform: translate(-50%, -50%); */
-  /*   cursor: pointer; */
-  /* } */
-
-  /* .rating li:hover { */
-  /*   background: #ff6a95; */
-  /*   color: #fff; */
-  /* } */
-
-  /* /1* Make actual radio select invisible *1/ */
-  /* [type='radio'] { */
-  /*   opacity: 0; */
-  /* } */
-
-  /* /1* Use the sibling select *1/ */
-  /* [type='radio']:checked ~ label { */
-  /*   background: #ff6a95; */
-  /*   color: #fff; */
-  /* } */
 </style>
