@@ -1,5 +1,4 @@
 from pathlib import Path
-import yaml
 from pprint import pprint
 import json
 from typing import Dict, Optional
@@ -11,6 +10,8 @@ from pyrogram.sync import compose
 from pyrogram.types import ChatMemberUpdated
 from pyrogram.types.messages_and_media.message import Message
 import requests
+
+from utilities import read_config_file
 
 from pyrogram.raw import functions
 
@@ -24,13 +25,11 @@ import schedule
 
 server_address = 'http://localhost:7777/api/get_state'
 
-def read_config_file(file_path: Path):
-    config = yaml.load(file_path.open(), yaml.FullLoader)
-    return config
+
 
 send_message_scheduler = schedule.Scheduler()
 
-config = read_config_file(Path('./tokens.yml'))
+config = read_config_file(Path('./secrets.yml'))
 
 
 tokens = {

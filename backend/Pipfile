@@ -15,6 +15,7 @@ pyrogram = "*"
 tgcrypto = "*"
 schedule = "*"
 pyyaml = "*"
+sanic-httpauth = "*"
 
 [dev-packages]
 
