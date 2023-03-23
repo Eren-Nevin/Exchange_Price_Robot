@@ -76,9 +76,8 @@ class AppState:
         )
 
         currency_model = CurrencyModel(
-            selected_currencies=['EUR'],
-            currency_rates=[CurrencyRate('TRY', 'TRY', 19.01, False, 0, 500),
-                            CurrencyRate('EUR', 'EUR', 1.05, False, 0, 500)
+            selected_currencies=[],
+            currency_rates=[
                             ]
         )
 
