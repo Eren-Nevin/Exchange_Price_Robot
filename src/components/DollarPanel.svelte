@@ -1,5 +1,6 @@
 <script>
-  import { DollarStore, DollarPrice } from "../stores.js";
+  import { DollarStore, sendStateToServer } from "../stores.js";
+  import { DollarPrice } from "../models.js";
   import Button from "./Button.svelte";
   import Card from "./Card.svelte";
 
@@ -7,7 +8,7 @@
 
   let user_selected_timedate;
 
-  const handleSubmit = (new_price) => {
+  const handleSubmitNewDollarPrice = async (new_price) => {
     console.log(new_price);
 
     DollarStore.update((currentState) => {
@@ -24,9 +25,9 @@
 
       let new_dollar_price = new DollarPrice(
         new_price,
-          user_selected_timedate instanceof String ?
-          Math.floor(Date.parse(user_selected_timedate) / 1000) :
-          Math.floor(new Date() / 1000)
+        user_selected_timedate instanceof String
+          ? Math.floor(Date.parse(user_selected_timedate) / 1000)
+          : Math.floor(new Date() / 1000)
       );
 
       let new_state = {
@@ -36,6 +37,8 @@
 
       return new_state;
     });
+
+      await sendStateToServer()
   };
 
   const convertTimestampToDate = (timestamp) => {
@@ -51,7 +54,7 @@
 </script>
 
 <Card>
-  <form on:submit|preventDefault={handleSubmit(manual_rate)}>
+  <form on:submit|preventDefault={handleSubmitNewDollarPrice(manual_rate)}>
     <div style="display: flex;">
       <p>Enter</p>
       <input type="number" min="0" bind:value={manual_rate} />

@@ -1,3 +1,4 @@
+from dataclasses import dataclass, asdict
 from pathlib import Path
 from pprint import pprint
 import json
@@ -23,8 +24,11 @@ import threading
 import time
 import schedule
 
-server_address = 'http://localhost:7777/api/get_state'
+@dataclass()
+class BotState:
+    contacted_chat_ids: set
 
+server_address = 'http://localhost:7777/api/get_state'
 
 
 send_message_scheduler = schedule.Scheduler()
@@ -44,9 +48,24 @@ bot_app = Client(
     api_hash=tokens['telegram_api_hash']
 )
 
-contacted_chat_ids = set()
 current_app_state = None
 prev_app_state = None
+
+bot_state = BotState(set())
+
+bot_state_json_file_path = Path('./bot_state.json')
+
+if bot_state_json_file_path.is_file():
+    try:
+        bot_state_raw = json.load(open(bot_state_json_file_path, 'r'))
+        bot_state = BotState(bot_state_raw['contacted_chat_ids'])
+        print(f'loaded chat ids {bot_state}')
+    except Exception as e:
+        print(e)
+
+
+contacted_chat_ids = set([*bot_state.contacted_chat_ids])
+
 
 def run_continuously(interval=1, scheduler: Optional[schedule.Scheduler] = None):
     cease_continuous_run = threading.Event()
@@ -63,8 +82,6 @@ def run_continuously(interval=1, scheduler: Optional[schedule.Scheduler] = None)
     continuous_thread = ScheduleThread()
     continuous_thread.start()
     return cease_continuous_run
-
-
 
 
 def final_price(currency: CurrencyRate, dollar_price: int):
@@ -142,13 +159,17 @@ def format_bot_output_from_app_state(bot_raw_output: Dict[str, int],
 
 
 def get_formatted_bot_output_from_app_state(new_appstate: AppState, prev_appstate:
-                                            Optional[AppState]):
+                                            Optional[AppState]) -> tuple[bool,
+                                                                         str]:
     prev_output = {}
     if isinstance(prev_app_state, AppState):
         prev_app_state_non_null: AppState = prev_app_state
         prev_output = bot_output_from_app_state(prev_app_state_non_null)
 
     new_output = bot_output_from_app_state(new_appstate)
+
+    if prev_output == new_output:
+        return False, ''
 
     changes_dict: Dict[str, str] = {}
     for name in new_output.keys():
@@ -162,7 +183,7 @@ def get_formatted_bot_output_from_app_state(new_appstate: AppState, prev_appstat
         else:
             changes_dict[name] = '-'
 
-    return format_bot_output_from_app_state(new_output, changes_dict)
+    return True, format_bot_output_from_app_state(new_output, changes_dict)
 
 
 def get_app_state_from_server():
@@ -184,10 +205,13 @@ def refresh_app_state_job():
             if new_app_state.bot_model.onChange:
                 # if not current_app_state or new_app_state.currency_model != current_app_state.currency_model:
                 if not current_app_state or new_app_state != current_app_state:
+                    cancel_all_pending_interval_messages()
                     bot_send_rates()
             elif new_app_state.bot_model.onTime:
                 print(new_app_state.bot_model)
-                if not current_app_state or new_app_state.bot_model.interval != current_app_state.bot_model.interval:
+                if not current_app_state or\
+                        current_app_state.bot_model.onChange or\
+                        new_app_state.bot_model.interval != current_app_state.bot_model.interval:
                     print("Interval Changed, Resecheduling")
                     cancel_all_pending_interval_messages()
                     schedule_pending_interval_messages(
@@ -198,8 +222,13 @@ def refresh_app_state_job():
         else:
             current_app_state = new_app_state
 
+
+        # json.dump(current_app_state, open('bot_)
+
     except Exception as e:
         print(e)
+
+
 
 
 def schedule_pending_interval_messages(interval):
@@ -210,6 +239,9 @@ def schedule_pending_interval_messages(interval):
         send_message_scheduler.every(interval.value).hours.do(bot_send_rates)
     elif interval.unit == 'Day':
         send_message_scheduler.every(interval.value).days.do(bot_send_rates)
+
+    print("All Jobs", flush=True)
+    print(send_message_scheduler.get_jobs(), flush=True)
 
 
 def cancel_all_pending_interval_messages():
@@ -222,21 +254,35 @@ def bot_send_rates():
     global contacted_chat_ids
     app_state = get_app_state_from_server()
 
-    message = get_formatted_bot_output_from_app_state(
+    
+    should_send_message, message = get_formatted_bot_output_from_app_state(
         app_state, prev_app_state)
 
-    to_be_removed_chat_ids = set()
-    for chat_id in contacted_chat_ids:
-        try:
-            res = bot_app.send_message(chat_id, message)
-        except PeerIdInvalid as e:
-            to_be_removed_chat_ids.add(chat_id)
+    print(should_send_message)
 
-    contacted_chat_ids = contacted_chat_ids.difference(to_be_removed_chat_ids)
+    if should_send_message:
+        to_be_removed_chat_ids = set()
+        for chat_id in contacted_chat_ids:
+            try:
+                res = bot_app.send_message(chat_id, message)
+            except PeerIdInvalid as e:
+                to_be_removed_chat_ids.add(chat_id)
+
+        contacted_chat_ids = contacted_chat_ids.difference(to_be_removed_chat_ids)
+        bot_state.contacted_chat_ids = set([*contacted_chat_ids])
+
+        def serialize_sets(obj):
+            if isinstance(obj, set):
+                return list(obj)
+
+            return obj
+        print("Saving bot_state")
+        json.dump(asdict(bot_state), open('bot_state.json', 'w'),
+                  default=serialize_sets)
 
 
 if __name__ == '__main__':
-    schedule.every(1).seconds.do(refresh_app_state_job)
+    schedule.every(5).seconds.do(refresh_app_state_job)
     default_stop_run = run_continuously()
     bot_message_task_stop_run = run_continuously(
         scheduler=send_message_scheduler)

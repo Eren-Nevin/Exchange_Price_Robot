@@ -1,93 +1,26 @@
 import { writable } from "svelte/store";
 import { v4 } from "uuid";
+import {
+  AppState,
+  CurrencyRate,
+  CurrencyModel,
+  DollarPrice,
+  DollarModel,
+  BotInterval,
+  BotModel,
+} from "./models";
 
 let app_server_address = "http://localhost:7777";
 
-class AppState {
-  dollar_model;
-  currency_model;
-  bot_model;
+export const CurrencyStore = writable(new CurrencyModel());
 
-  constructor(dollar_model, currency_model, bot_model) {
-    this.dollar_model = dollar_model;
-    this.currency_model = currency_model;
-    this.bot_model = bot_model;
-  }
-}
+export const DollarStore = writable(new DollarModel());
 
-export class CurrencyRate {
-  uid;
-  currencyCode;
-  alias_name;
-  rate;
-  has_manual_rate;
-  manual_rate;
-  adjustment;
+export const BotStore = writable(new BotModel());
 
-  constructor(
-    currencyCode,
-    alias_name,
-    rate,
-    has_manual_rate,
-    manual_rate,
-    adjustment
-  ) {
-    this.uid = v4();
-    this.currencyCode = currencyCode;
-    this.alias_name = alias_name;
-    this.rate = rate;
-    this.has_manual_rate = has_manual_rate;
-    this.manual_rate = manual_rate;
-    this.adjustment = adjustment;
-  }
-}
+let app_state = new AppState(null, null, null);
 
-export class DollarPrice {
-  price;
-  timestamp;
-
-  constructor(price, timestamp) {
-    this.uid = v4();
-    this.price = price;
-    this.timestamp = timestamp;
-  }
-}
-
-export class BotInterval {
-  unit;
-  value;
-
-  constructor(unit, value) {
-    this.unit = unit;
-    this.value = value;
-  }
-}
-
-export const CurrencyStore = writable({
-  selected_currencies: ["EUR", "TRY"],
-  currency_rates: [
-    new CurrencyRate("EUR", "1.05", false, 1, 500),
-    new CurrencyRate("TRY", "19.01", true, 19.5, -200),
-  ],
-});
-
-export const DollarStore = writable({
-  current_price: new DollarPrice(48285, 1679161352),
-  historic_prices: [
-    new DollarPrice(47895, 1679218971),
-    new DollarPrice(48890, 1679118971),
-  ],
-});
-
-export const BotStore = writable({
-  disabled: false,
-  onTime: true,
-  onChange: false,
-
-  interval: new BotInterval("Min", 2),
-});
-
-export async function getStateFromServer() {
+export async function getRawStateFromServer() {
   let raw_res = await fetch(
     `${app_server_address}/api/get_state`
     // {mode: 'no-cors'}
@@ -100,7 +33,7 @@ export async function getStateFromServer() {
   return await raw_res.json();
 }
 
-function dollarStoreDataAdapter(dollar_model) {
+function dollarModelDataAdapter(dollar_model) {
   let rec_historic_prices = [];
 
   for (let historic_price of dollar_model.historic_prices) {
@@ -112,35 +45,34 @@ function dollarStoreDataAdapter(dollar_model) {
 
   rec_historic_prices.sort((a, b) => b.timestamp - a.timestamp);
 
-  let new_dollar_state = {
-    current_price: new DollarPrice(
+  let new_dollar_model = new DollarModel(
+    new DollarPrice(
       dollar_model.current_price.price,
       dollar_model.current_price.timestamp
     ),
-    historic_prices: rec_historic_prices,
-  };
+    rec_historic_prices
+  );
 
-  return new_dollar_state;
+  return new_dollar_model;
 }
 
-function botStoreDataAdapter(bot_model) {
+function botModelDataAdapter(bot_model) {
   let interval = new BotInterval(
     bot_model.interval.unit,
     bot_model.interval.value
   );
 
-  let new_bot_model = {
-    disabled: bot_model.disabled,
-    onChange: bot_model.onChange,
-    onTime: bot_model.onTime,
-
-    interval: interval,
-  };
+  let new_bot_model = new BotModel(
+    bot_model.disabled,
+    bot_model.onTime,
+    bot_model.onChange,
+    interval
+  );
 
   return new_bot_model;
 }
 
-function currencyStoreDataAdapter(currency_model) {
+function currencyModelDataAdapter(currency_model) {
   let received_currency_rates = [];
 
   for (let raw_model of currency_model.currency_rates) {
@@ -160,51 +92,99 @@ function currencyStoreDataAdapter(currency_model) {
       a.currencyCode.localeCompare(b.currencyCode)
     ),
   ];
-  let new_currency_state = {
-    selected_currencies: currency_model.selected_currencies,
-    currency_rates: received_currency_rates,
-  };
-  return new_currency_state;
+  let new_currency_model = new CurrencyModel(
+    currency_model.selected_currencies,
+    received_currency_rates
+  );
+  return new_currency_model;
+}
+
+async function _getAppStateFromServer() {
+  console.log("Getting app state from server");
+  let raw_state = await getRawStateFromServer();
+
+  let new_dollar_model = dollarModelDataAdapter(raw_state.dollar_model);
+  let new_bot_model = botModelDataAdapter(raw_state.bot_model);
+  let new_currency_model = currencyModelDataAdapter(raw_state.currency_model);
+
+  let app_state = new AppState(
+    new_dollar_model,
+    new_currency_model,
+    new_bot_model
+  );
+
+  console.log(app_state);
+
+  return app_state;
+}
+
+export async function reloadRatesFromServer() {
+  console.log("Reloading rates from server");
+
+  let newAppState = await _getAppStateFromServer();
+  let new_currency_rates = newAppState.currency_model.currency_rates;
+
+  CurrencyStore.update((currentState) => {
+    let toBeUpdatedState = JSON.parse(JSON.stringify(currentState));
+    for (let currency_rate of currentState.currency_rates) {
+      if (
+        new_currency_rates
+          .map((e) => e.currencyCode)
+          .includes(currency_rate.currencyCode)
+      ) {
+        let corrospondingRate = new_currency_rates.filter(
+          (e) => e.currencyCode == currency_rate.currencyCode
+        )[0];
+        toBeUpdatedState.currency_rates.find(
+          (e) => e.currencyCode == corrospondingRate.currencyCode
+        ).rate = corrospondingRate.rate;
+      }
+    }
+    return toBeUpdatedState;
+  });
 }
 
 export async function reloadStateFromServer() {
-  console.log("Getting state from server");
-  let raw_state = await getStateFromServer();
-
-  let new_dollar_state = dollarStoreDataAdapter(raw_state.dollar_model);
-  let new_bot_state = botStoreDataAdapter(raw_state.bot_model);
-  let new_currency_state = currencyStoreDataAdapter(raw_state.currency_model);
+  let new_app_state = await _getAppStateFromServer();
+  console.log(new_app_state);
 
   DollarStore.update((currentState) => {
-    return new_dollar_state;
+    return new_app_state.dollar_model;
   });
 
   BotStore.update((currentState) => {
-    return new_bot_state;
+    return new_app_state.bot_model;
   });
 
   CurrencyStore.update((currentState) => {
-    return new_currency_state;
+    return new_app_state.currency_model;
   });
-
-  return raw_state;
 }
 
-let app_state = new AppState(null, null, null);
+let dollarUnsub;
+let currencyUnsub;
+let botUnsub;
 
 export function startUpdatingAppState() {
-  let dollarSub = DollarStore.subscribe((dollar_model) => {
+  dollarUnsub = DollarStore.subscribe((dollar_model) => {
     app_state.dollar_model = dollar_model;
   });
-  let currencySub = CurrencyStore.subscribe((currency_model) => {
+  currencyUnsub = CurrencyStore.subscribe((currency_model) => {
     app_state.currency_model = {
       selected_currencies: currency_model.selected_currencies,
       currency_rates: [...currency_model.currency_rates],
     };
   });
-  let botSub = BotStore.subscribe((bot_model) => {
+  botUnsub = BotStore.subscribe((bot_model) => {
     app_state.bot_model = bot_model;
   });
+
+}
+
+export function stopUpdatingAppState() {
+    dollarUnsub()
+    currencyUnsub()
+    botUnsub()
 }
 
 export async function sendStateToServer() {
@@ -217,5 +197,4 @@ export async function sendStateToServer() {
     },
     body: app_state_json,
   });
-
 }

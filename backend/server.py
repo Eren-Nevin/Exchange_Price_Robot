@@ -1,4 +1,4 @@
-
+import json as standard_json
 
 import hashlib
 import threading
@@ -97,6 +97,11 @@ class Server:
         self.last_rates = self.xe_crawler.get_xe_rates(False)
         self.app_state = AppState.initialize_test()
 
+        load_res = self.load_state_from_file(Path('./app_state.json'))
+        if load_res:
+            print("Successuflly loaded app state")
+
+
         self.update_app_state_with_xe()
 
         self.app_state.currency_model.currency_rates =\
@@ -108,6 +113,32 @@ class Server:
         self.set_serve_static()
         self.app.add_route(auth.login_required(
             self.index), 'index.html', ['GET'])
+
+    def save_state_to_file(self, path: Path):
+        def serialize_sets(obj):
+            if isinstance(obj, set):
+                return list(obj)
+
+            return obj
+        print("Saving app_state")
+        try:
+            standard_json.dump(asdict(self.app_state), open(path, 'w'))
+            return True
+        except Exception as e:
+            print(e)
+        return False
+
+    def load_state_from_file(self, path: Path):
+        print("Loading app_state")
+        try:
+            bot_state_raw = standard_json.load(open(path, 'r'))
+            self.app_state = fromdict(AppState, bot_state_raw)
+            print(f'loaded app state {self.app_state}')
+            return True
+        except Exception as e:
+            print(e)
+
+        return False
 
     async def index(self, request: Request):
         path = Path('../public')
@@ -143,6 +174,10 @@ class Server:
         self.app_state = fromdict(AppState, request.json)
 
         pprint(asdict(self.app_state))
+        save_res = self.save_state_to_file(Path('./app_state.json'))
+        if save_res:
+            print('Successfully saved state to file')
+        
         return json({'status': 'OK'})
 
     def update_app_state_with_xe_result(self, xe_result: XeResult):

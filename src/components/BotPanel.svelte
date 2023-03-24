@@ -1,8 +1,9 @@
 <script>
   import Card from "./Card.svelte";
-  import { BotStore, getStateFromServer, reloadStateFromServer, sendStateToServer } from "../stores";
+  import { BotStore, sendStateToServer } from "../stores";
+  import {onMount} from "svelte";
 
-  const onTriggerChange = (e) => {
+  const onTriggerChange = async (e) => {
     let selected = +e.currentTarget.value;
     BotStore.update((currentState) => {
       let new_state = JSON.parse(JSON.stringify(currentState));
@@ -17,70 +18,81 @@
 
       return new_state;
     });
+    await sendStateToServer();
   };
 
-    const onBotDisableButtonClicked = () => {
-        $BotStore.disabled = !$BotStore.disabled;
+    const onIntervalChangeHandler = async () => {
+        await sendStateToServer();
     }
+
+  const onBotDisableButtonClicked = async () => {
+    $BotStore.disabled = !$BotStore.disabled;
+      await sendStateToServer();
+  };
+
+    onMount(async () => {
+        console.log("MOUNTED BOT PANEL")
+        console.log($BotStore.onTime)
+        console.log($BotStore.onChange)
+    })
+
 </script>
 
 <Card>
-    <div style="display: flex;">
-        <p>Status: </p>
-        <p>{$BotStore.disabled ? 'Disabled': 'Running'}</p>
-
-    </div>
-    {#if !$BotStore.disabled}
-  <ul class="rating">
-    <li>
-      <input
-        type="radio"
-        id="by-time"
-        name="by-time"
-        value="1"
-        on:change={onTriggerChange}
-        checked={$BotStore.onTime}
-      />
-      <label for="num1">Send On Time</label>
-    </li>
-    <li>
-      <input
-        type="radio"
-        id="by-change"
-        name="by-change"
-        value="2"
-        on:change={onTriggerChange}
-        checked={$BotStore.onChange}
-      />
-      <label for="num2">Send On Change</label>
-    </li>
-  </ul>
-  {#if $BotStore.onTime}
-    <div style="display: flex;">
-      <p>Every</p>
-      <input
-        type="number"
-        min="0"
-        step="1"
-        bind:value={$BotStore.interval.value}
-      />
-      <select
-        bind:value={$BotStore.interval.unit}
-        name="interval-unit"
-        id="interval-unit"
-      >
-        <option value="Min">Minutes</option>
-        <option value="Hour">Hours</option>
-        <option value="Day">Days</option>
-      </select>
-    </div>
-  {/if}
-
+  <div style="display: flex;">
+    <p>Status:</p>
+    <p>{$BotStore.disabled ? "Disabled" : "Running"}</p>
+  </div>
+  {#if !$BotStore.disabled}
+    <ul class="rating">
+      <li>
+        <input
+          type="radio"
+          id="by-time"
+          name="by-time"
+          value="1"
+          on:change={onTriggerChange}
+          checked={$BotStore.onTime}
+        />
+        <label for="num1">Send On Time</label>
+      </li>
+      <li>
+        <input
+          type="radio"
+          id="by-change"
+          name="by-change"
+          value="2"
+          on:change={onTriggerChange}
+          checked={$BotStore.onChange}
+        />
+        <label for="num2">Send On Change</label>
+      </li>
+    </ul>
+    {#if $BotStore.onTime}
+      <div style="display: flex;">
+        <p>Every</p>
+        <input
+          type="number"
+          min="0"
+          step="1"
+          on:change={onIntervalChangeHandler}
+          bind:value={$BotStore.interval.value}
+        />
+        <select
+          bind:value={$BotStore.interval.unit}
+          on:change={onIntervalChangeHandler}
+          name="interval-unit"
+          id="interval-unit"
+        >
+          <option value="Min">Minutes</option>
+          <option value="Hour">Hours</option>
+          <option value="Day">Days</option>
+        </select>
+      </div>
+    {/if}
   {/if}
   <div style="display: flex">
-    <button
-      on:click={onBotDisableButtonClicked}
-    >
+    <button on:click={onBotDisableButtonClicked}>
       {$BotStore.disabled ? "Enable" : "Disable"}
     </button>
   </div>
@@ -115,16 +127,14 @@
     opacity: 0.9;
   }
 
-  button:disabled{
+  button:disabled {
     background-color: #cccccc;
     color: #333;
-    cursor:auto;
+    cursor: auto;
   }
 
-  button:disabled:hover{
-    transform:scale(1);
+  button:disabled:hover {
+    transform: scale(1);
     opacity: 1;
   }
-
-
 </style>

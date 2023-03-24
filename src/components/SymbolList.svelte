@@ -1,17 +1,15 @@
 <script>
-  import { CurrencyRate, CurrencyStore, DollarStore } from "../stores";
-  import { fade, scale } from "svelte/transition";
+  import { CurrencyStore, sendStateToServer } from "../stores";
+  import { CurrencyRate } from "../models";
   import Card from "./Card.svelte";
-  import Button from "./Button.svelte";
   import { onMount } from "svelte";
-
   $: selectedCurrency = "";
 
   let updated_current_currencies;
 
   $: addingNewCurrency = true;
 
-  $: newCurrency = {
+  $: newOrEditCurrency = {
     currencyCode: "",
     alias_name: "",
     rate: 1,
@@ -32,100 +30,100 @@
   };
 
   const onNewFieldChangeHandler = (event) => {
-    console.log(newCurrency.currencyCode);
-    updateAddingNewCurrency(newCurrency.currencyCode);
+    updateAddingNewCurrency(newOrEditCurrency.currencyCode);
   };
 
-  const handleDeleteCurrency = () => {
-    console.log(`Deleting ${newCurrency}`);
+  const handleDeleteCurrency = async () => {
+    console.log(`Deleting ${newOrEditCurrency}`);
     CurrencyStore.update((currentState) => {
       let newState = currentState;
 
       let newCurrencyRates = newState.currency_rates.filter(
         (currency_rate) =>
-          currency_rate.currencyCode != newCurrency.currencyCode
+          currency_rate.currencyCode != newOrEditCurrency.currencyCode
       );
 
-        newCurrencyRates = newCurrencyRates.filter(item => item)
+      newCurrencyRates = newCurrencyRates.filter((item) => item);
 
       newState.currency_rates = [...newCurrencyRates];
 
-      resetNewCurrency()
+      resetNewOrEditCurrency();
       return newState;
     });
-
+    await sendStateToServer();
   };
 
-  const handleNewEditCurrency = () => {
-    console.log(`Adding ${newCurrency}`);
+  const handleAddOrEditCurrency = async () => {
+    console.log(`Adding or Editing ${newOrEditCurrency}`);
     CurrencyStore.update((currentState) => {
       let newState = currentState;
-
-      let current_currencies = currentState.currency_rates.map(
-        (v) => v.currencyCode
-      );
-      console.log(current_currencies);
 
       if (
         currentState.currency_rates
           .map((v) => v.currencyCode)
-          .includes(newCurrency.currencyCode)
+          .includes(newOrEditCurrency.currencyCode)
       ) {
         console.log("Editing");
         let current_currency_rates = [...newState.currency_rates];
         let index = current_currency_rates.findIndex(
-          (v) => v.currencyCode == newCurrency.currencyCode
+          (v) => v.currencyCode == newOrEditCurrency.currencyCode
         );
-        current_currency_rates[index].alias_name = newCurrency.alias_name;
+        current_currency_rates[index].alias_name = newOrEditCurrency.alias_name;
         newState.currency_rates = [...current_currency_rates];
       } else {
+        console.log("Adding");
         newState.currency_rates = [
           new CurrencyRate(
-            newCurrency.currencyCode,
-            newCurrency.alias_name,
-            newCurrency.rate,
-            newCurrency.has_manual_rate,
-            newCurrency.manual_rate,
-            newCurrency.adjustment
+            newOrEditCurrency.currencyCode,
+            newOrEditCurrency.alias_name,
+            newOrEditCurrency.rate,
+            newOrEditCurrency.has_manual_rate,
+            newOrEditCurrency.manual_rate,
+            newOrEditCurrency.adjustment
           ),
 
           ...newState.currency_rates,
         ];
 
         newState.selected_currencies = [
-          newCurrency.currencyCode,
+          newOrEditCurrency.currencyCode,
           ...newState.selected_currencies,
         ];
       }
 
-      console.log(newState);
-
-        resetNewCurrency()
+      resetNewOrEditCurrency();
 
       return newState;
     });
+
+    await sendStateToServer();
   };
 
-    const resetNewCurrency = () => {
-      newCurrency = {
-        currencyCode: "",
-        alias_name: "",
-        rate: 1,
-        has_manual_rate: true,
-        manual_rate: 1,
-        adjustment: 0,
-      };
-        addingNewCurrency = true
-    }
-
-  const handleInput = (symbol) => {
-    console.log(symbol);
-  };
-  const handleCurrencyRateChange = (currencyRateElement) => {
-    console.log(currencyRateElement);
+  const handleChangingAdjustment = async () => {
+    console.log("Handing adjustment");
+    await sendStateToServer();
   };
 
-  const handleSelectCurrency = (selectedCurrencyName) => {
+  const resetNewOrEditCurrency = () => {
+    newOrEditCurrency = {
+      currencyCode: "",
+      alias_name: "",
+      rate: 1,
+      has_manual_rate: true,
+      manual_rate: 1,
+      adjustment: 0,
+    };
+    addingNewCurrency = true;
+  };
+
+  /* const handleInput = (symbol) => { */
+  /*   console.log(symbol); */
+  /* }; */
+  /* const handleCurrencyRateChange = (currencyRateElement) => { */
+  /*   console.log(currencyRateElement); */
+  /* }; */
+
+  const handleSelectCurrency = async (selectedCurrencyName) => {
     if (selectedCurrencyName.length > 0) {
       console.log(`Selecting ${selectedCurrencyName}`);
       CurrencyStore.update((currentState) => {
@@ -141,12 +139,14 @@
         return newState;
       });
 
+      await sendStateToServer();
+      await sendStateToServer();
+
       selectedCurrency = "";
     }
   };
 
-  const handleResetCurrencies = () => {
-    console.log("FFF");
+  const handleResetCurrencies = async () => {
     CurrencyStore.update((currentState) => {
       let newState = currentState;
 
@@ -154,6 +154,8 @@
 
       return newState;
     });
+
+    await sendStateToServer();
   };
 
   $: selectedCurrencies = [];
@@ -161,17 +163,14 @@
   const updateSelectedCurrencies = (currency_model) => {
     let m_SelectedCurrencies = [];
     for (let selectedCurrency of currency_model.selected_currencies) {
-        let possibleSelected = currency_model.currency_rates.filter(
-          (v) => v.currencyCode === selectedCurrency
-        )[0]
-        if (possibleSelected){
-      m_SelectedCurrencies.push(
-          possibleSelected
-      );
-        }
+      let possibleSelected = currency_model.currency_rates.filter(
+        (v) => v.currencyCode === selectedCurrency
+      )[0];
+      if (possibleSelected) {
+        m_SelectedCurrencies.push(possibleSelected);
+      }
     }
     console.log("Updating selected currencies");
-      console.log(m_SelectedCurrencies);
     selectedCurrencies = m_SelectedCurrencies;
   };
 
@@ -179,7 +178,6 @@
     CurrencyStore.subscribe((currency_model) => {
       updated_current_currencies = currency_model.currency_rates;
       updateSelectedCurrencies(currency_model);
-      console.log(selectedCurrencies);
     });
   });
 </script>
@@ -193,17 +191,17 @@
       }}
       style="width: 56px; margin-right: 16px;"
       type="text"
-      bind:value={newCurrency.currencyCode}
+      bind:value={newOrEditCurrency.currencyCode}
     />
     <input
       style="width: 96px; margin-right: 16px;"
       on:chage={() => {}}
       type="text"
-      bind:value={newCurrency.alias_name}
+      bind:value={newOrEditCurrency.alias_name}
     />
     <button
       on:click={() => {
-        handleNewEditCurrency();
+        handleAddOrEditCurrency();
       }}>{addingNewCurrency ? "Add" : "Edit"}</button
     >
     {#if !addingNewCurrency}
@@ -256,7 +254,7 @@
     <div class="table-cell heading-title">Adjustment</div>
     {#each selectedCurrencies as currencyRate, i (currencyRate.uid)}
       <div class="table-cell">
-          <p>{i+1}</p>
+        <p>{i + 1}</p>
       </div>
 
       <div class="table-cell">
@@ -275,7 +273,7 @@
       <div class="table-cell">
         {#if currencyRate.has_manual_rate}
           <input
-            on:chage={() => {}}
+            on:change={handleChangingAdjustment}
             type="number"
             min="0"
             step="0.0001"
@@ -289,7 +287,7 @@
       </div>
       <div class="table-cell">
         <input
-          on:change={() => {}}
+          on:change={handleChangingAdjustment}
           type="number"
           step="50"
           bind:value={currencyRate.adjustment}
