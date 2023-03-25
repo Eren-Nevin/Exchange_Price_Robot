@@ -1,9 +1,9 @@
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, replace
 from pathlib import Path
 from pprint import pprint
 import json
 from typing import Dict, Optional
-from dataclass_wizard import fromdict
+from dataclass_wizard import fromdict, asdict
 from pyrogram import filters
 from pyrogram.client import Client
 from pyrogram.methods.utilities.idle import idle
@@ -49,7 +49,7 @@ bot_app = Client(
 )
 
 current_app_state = None
-prev_app_state = None
+prev_app_state_sent_via_message = None
 
 bot_state = BotState(set())
 
@@ -158,15 +158,20 @@ def format_bot_output_from_app_state(bot_raw_output: Dict[str, int],
     return output_text
 
 
-def get_formatted_bot_output_from_app_state(new_appstate: AppState, prev_appstate:
+def get_formatted_bot_output_from_app_state(new_appstate: AppState, prev_app_state_sent_via_message:
                                             Optional[AppState]) -> tuple[bool,
                                                                          str]:
     prev_output = {}
-    if isinstance(prev_app_state, AppState):
-        prev_app_state_non_null: AppState = prev_app_state
-        prev_output = bot_output_from_app_state(prev_app_state_non_null)
+    if isinstance(prev_app_state_sent_via_message, AppState):
+        prev_app_state_sent_via_message_non_null: AppState = prev_app_state_sent_via_message
+        prev_output = bot_output_from_app_state(prev_app_state_sent_via_message_non_null)
 
     new_output = bot_output_from_app_state(new_appstate)
+
+    print('prev')
+    print(prev_output)
+    print('new')
+    print(new_output)
 
     if prev_output == new_output:
         return False, ''
@@ -196,8 +201,7 @@ def refresh_app_state_job():
     print(f'Contacted chat ids are: {contacted_chat_ids}')
     try:
         global current_app_state
-        global prev_app_state
-        prev_app_state = current_app_state
+        global prev_app_state_sent_via_message
         new_app_state = get_app_state_from_server()
         if new_app_state.bot_model.disabled:
             cancel_all_pending_interval_messages()
@@ -252,15 +256,22 @@ def cancel_all_pending_interval_messages():
 def bot_send_rates():
     print("Sending rate")
     global contacted_chat_ids
+    global prev_app_state_sent_via_message
     app_state = get_app_state_from_server()
 
     
     should_send_message, message = get_formatted_bot_output_from_app_state(
-        app_state, prev_app_state)
+        app_state, prev_app_state_sent_via_message)
+    #should_send_message, message = get_formatted_bot_output_from_app_state(
+    #    current_app_state, prev_app_state_sent_via_message)
 
     print(should_send_message)
 
     if should_send_message:
+        if isinstance(app_state, AppState):
+            prev_app_state_sent_via_message = replace(app_state)
+        else:
+            prev_app_state_sent_via_message = app_state
         to_be_removed_chat_ids = set()
         for chat_id in contacted_chat_ids:
             try:
