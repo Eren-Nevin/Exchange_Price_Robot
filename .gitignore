@@ -1,3 +1,11 @@
+*.vim
+*.json
+*.yml
+
+*.session
+*.session-journal
+public/build/*
+
 # Logs
 logs
 *.log
