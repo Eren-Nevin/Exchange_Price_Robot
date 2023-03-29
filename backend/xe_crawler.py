@@ -68,24 +68,29 @@ class XeCrawler:
         if referesh_auth:
             self.refresh_auth()
 
+        sleep(5)
+
         res = requests.get(
             'https://www.xe.com/api/protected/midmarket-converter/',
             headers=self.get_headers(),
         )
 
-        res_dict = res.json()
+        try:
+            res_dict = res.json()
 
-        xe_timestamp = res_dict['timestamp']
-        xe_rates: Dict[str, float] = {}
+            xe_timestamp = res_dict['timestamp']
+            xe_rates: Dict[str, float] = {}
 
-        for key, value in res_dict['rates'].items():
-            if value:
-                xe_rates[key] = float(1/value)
-            else:
-                xe_rates[key] = 0
+            for key, value in res_dict['rates'].items():
+                if value:
+                    xe_rates[key] = float(1/value)
+                else:
+                    xe_rates[key] = 0
 
-
-        return XeResult(xe_timestamp, xe_rates)
+            return XeResult(xe_timestamp, xe_rates)
+        except Exception as e:
+            print(e)
+            return None
 
     def convert_xe_results_to_currency_rate_list(self, xe_result: XeResult):
         rates: List[CurrencyRate] = []

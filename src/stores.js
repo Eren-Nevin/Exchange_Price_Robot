@@ -20,6 +20,40 @@ export const BotStore = writable(new BotModel());
 
 let app_state = new AppState(null, null, null);
 
+export async function uploadStateFileToServer() {
+  console.log("UPLOADING");
+  var input = document.querySelector('input[type="file"]');
+  console.log(input);
+
+  var data = new FormData()
+  data.append('file', input.files[0])
+  data.append('user', 'hubot')
+
+  let res = await fetch(`${app_server_address}/api/send_state_file`, {
+    method: "POST",
+    body: data
+  });
+    console.log(res.text())
+}
+
+export async function downloadStateFileFromServer() {
+  fetch(`${app_server_address}/api/get_state_file`)
+    .then((resp) => resp.blob())
+    .then((blob) => {
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.style.display = "none";
+      a.href = url;
+      // the filename you want
+      a.download = "app_state.json";
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      alert("your file has downloaded!"); // or you know, something with better UX...
+    })
+    .catch(() => alert("oh no!"));
+}
+
 export async function getRawStateFromServer() {
   let raw_res = await fetch(
     `${app_server_address}/api/get_state`
@@ -178,13 +212,12 @@ export function startUpdatingAppState() {
   botUnsub = BotStore.subscribe((bot_model) => {
     app_state.bot_model = bot_model;
   });
-
 }
 
 export function stopUpdatingAppState() {
-    dollarUnsub()
-    currencyUnsub()
-    botUnsub()
+  dollarUnsub();
+  currencyUnsub();
+  botUnsub();
 }
 
 export async function sendStateToServer() {
