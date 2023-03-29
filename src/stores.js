@@ -34,6 +34,7 @@ export async function uploadStateFileToServer() {
     body: data
   });
     console.log(res.text())
+    location.reload();
 }
 
 export async function downloadStateFileFromServer() {
