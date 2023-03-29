@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 from dataclasses import dataclass, asdict, replace
+=======
+from dataclasses import dataclass, replace
+>>>>>>> c849d99 (Fixed from server)
 from pathlib import Path
 from pprint import pprint
 import json
@@ -28,6 +32,26 @@ import schedule
 class BotState:
     contacted_chat_ids: set
 
+current_app_state = None
+prev_app_state_sent_via_message = None
+
+bot_state = BotState(set())
+
+bot_state_json_file_path = Path('./bot_state.json')
+
+if bot_state_json_file_path.is_file():
+    try:
+        bot_state_raw = json.load(open(bot_state_json_file_path, 'r'))
+        bot_state = BotState(bot_state_raw['contactedChatIds'])
+        print(f'loaded chat ids {bot_state}')
+    except Exception as e:
+        print(e)
+
+
+contacted_chat_ids = set([*bot_state.contacted_chat_ids])
+print(contacted_chat_ids)
+
+
 server_address = 'http://localhost:7777/api/get_state'
 
 
@@ -48,6 +72,7 @@ bot_app = Client(
     api_hash=tokens['telegram_api_hash']
 )
 
+<<<<<<< HEAD
 current_app_state = None
 prev_app_state_sent_via_message = None
 
@@ -65,6 +90,8 @@ if bot_state_json_file_path.is_file():
 
 
 contacted_chat_ids = set([*bot_state.contacted_chat_ids])
+=======
+>>>>>>> c849d99 (Fixed from server)
 
 
 def run_continuously(interval=1, scheduler: Optional[schedule.Scheduler] = None):
@@ -173,8 +200,11 @@ def get_formatted_bot_output_from_app_state(new_appstate: AppState, prev_app_sta
     print('new')
     print(new_output)
 
+<<<<<<< HEAD
     if prev_output == new_output:
         return False, ''
+=======
+>>>>>>> c849d99 (Fixed from server)
 
     changes_dict: Dict[str, str] = {}
     for name in new_output.keys():
@@ -188,7 +218,11 @@ def get_formatted_bot_output_from_app_state(new_appstate: AppState, prev_app_sta
         else:
             changes_dict[name] = '-'
 
-    return True, format_bot_output_from_app_state(new_output, changes_dict)
+    message = format_bot_output_from_app_state(new_output, changes_dict)
+
+    if prev_output == new_output:
+        return False, message
+    return True, message
 
 
 def get_app_state_from_server():
@@ -198,7 +232,7 @@ def get_app_state_from_server():
 
 
 def refresh_app_state_job():
-    print(f'Contacted chat ids are: {contacted_chat_ids}')
+    print(f'Contacted chat ids are: {contacted_chat_ids}', flush=True)
     try:
         global current_app_state
         global prev_app_state_sent_via_message
@@ -210,13 +244,13 @@ def refresh_app_state_job():
                 # if not current_app_state or new_app_state.currency_model != current_app_state.currency_model:
                 if not current_app_state or new_app_state != current_app_state:
                     cancel_all_pending_interval_messages()
-                    bot_send_rates()
+                    bot_send_rates(False)
             elif new_app_state.bot_model.onTime:
-                print(new_app_state.bot_model)
+                print(new_app_state.bot_model, flush=True)
                 if not current_app_state or\
                         current_app_state.bot_model.onChange or\
                         new_app_state.bot_model.interval != current_app_state.bot_model.interval:
-                    print("Interval Changed, Resecheduling")
+                    print("Interval Changed, Resecheduling", flush=True)
                     cancel_all_pending_interval_messages()
                     schedule_pending_interval_messages(
                         new_app_state.bot_model.interval)
@@ -230,13 +264,13 @@ def refresh_app_state_job():
         # json.dump(current_app_state, open('bot_)
 
     except Exception as e:
-        print(e)
+        print(e, flush=True)
 
 
 
 
 def schedule_pending_interval_messages(interval):
-    print("Scheduling messages")
+    print("Scheduling messages", flush=True)
     if interval.unit == 'Min':
         send_message_scheduler.every(interval.value).minutes.do(bot_send_rates)
     elif interval.unit == 'Hour':
@@ -249,12 +283,13 @@ def schedule_pending_interval_messages(interval):
 
 
 def cancel_all_pending_interval_messages():
-    print("Cacncelling pending messages")
+    print("Cacncelling pending messages", flush=True)
     send_message_scheduler.clear()
 
 
-def bot_send_rates():
-    print("Sending rate")
+# Pass send_if_equals as False for updating on change.
+def bot_send_rates(send_if_equal=True):
+    print("Sending rate", flush=True)
     global contacted_chat_ids
     global prev_app_state_sent_via_message
     app_state = get_app_state_from_server()
@@ -267,7 +302,11 @@ def bot_send_rates():
 
     print(should_send_message)
 
+<<<<<<< HEAD
     if should_send_message:
+=======
+    if send_if_equal or should_send_message:
+>>>>>>> c849d99 (Fixed from server)
         if isinstance(app_state, AppState):
             prev_app_state_sent_via_message = replace(app_state)
         else:
@@ -287,9 +326,8 @@ def bot_send_rates():
                 return list(obj)
 
             return obj
-        print("Saving bot_state")
-        json.dump(asdict(bot_state), open('bot_state.json', 'w'),
-                  default=serialize_sets)
+        print("Saving bot_state", flush=True)
+        json.dump(asdict(bot_state), open('bot_state.json', 'w'))
 
 
 if __name__ == '__main__':

@@ -88,7 +88,7 @@ class Server:
         self.app = Sanic("My_Server")
         self.app.config.LOCAL_CERT_CREATOR = 'trustme'
         self.app.config['CORS_SUPPORTS_CREDENTIALS'] = True
-        self.app.config.CORS_ORIGINS = "http://localhost:5000"
+        self.app.config.CORS_ORIGINS = "http://lord-bot.com"
         Extend(self.app)
 
         self.xe_crawler = XeCrawler()
@@ -99,7 +99,7 @@ class Server:
 
         load_res = self.load_state_from_file(Path('./app_state.json'))
         if load_res:
-            print("Successuflly loaded app state")
+            print("Successuflly loaded app state", flush=True)
 
 
         self.update_app_state_with_xe()
@@ -120,23 +120,23 @@ class Server:
                 return list(obj)
 
             return obj
-        print("Saving app_state")
+        print("Saving app_state", flush=True)
         try:
             standard_json.dump(asdict(self.app_state), open(path, 'w'))
             return True
         except Exception as e:
-            print(e)
+            print(e, flush=True)
         return False
 
     def load_state_from_file(self, path: Path):
-        print("Loading app_state")
+        print("Loading app_state", flush=True)
         try:
             bot_state_raw = standard_json.load(open(path, 'r'))
             self.app_state = fromdict(AppState, bot_state_raw)
-            print(f'loaded app state {self.app_state}')
+            print(f'loaded app state {self.app_state}',flush=True)
             return True
         except Exception as e:
-            print(e)
+            print(e, flush=True)
 
         return False
 
@@ -161,22 +161,22 @@ class Server:
         return res
 
     async def get_state(self, request: Request):
-        print("Updating rates")
+        print("Updating rates", flush=True)
         self.update_app_state_with_xe()
-        print("Sending State to client")
+        print("Sending State to client", flush=True)
         res = json(dataclasses.asdict(self.app_state))
         res.headers.extend({'Access-Control-Allow-Origin': '*'})
 
         return res
 
     async def send_state(self, request: Request):
-        print("Getting state from client")
+        print("Getting state from client", flush=True)
         self.app_state = fromdict(AppState, request.json)
 
         pprint(asdict(self.app_state))
         save_res = self.save_state_to_file(Path('./app_state.json'))
         if save_res:
-            print('Successfully saved state to file')
+            print('Successfully saved state to file', flush=True)
         
         return json({'status': 'OK'})
 
