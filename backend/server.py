@@ -220,7 +220,7 @@ class Server:
     # This checks the xe website each minute and updates the app state.
 
     def start_continous_xe_crawling(self):
-        schedule.every(20).minutes.do(self.update_app_state_with_xe)
+        schedule.every(1).minutes.do(self.update_app_state_with_xe)
         stop_run = run_continuously()
         return stop_run
 
@@ -230,4 +230,4 @@ server = Server()
 if __name__ == '__main__':
     stop_run = server.start_continous_xe_crawling()
     server.app.run(server_address, server_port)
-    stop_run.set()
+    # stop_run.set()
